@@ -35,5 +35,5 @@ Thumbs.db
 # Manifests state (local runtime)
 manifests/state/*.lock
 
-# Documentation
+# Docs (private plans, not for remote)
 docs/
