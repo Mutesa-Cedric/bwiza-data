@@ -18,8 +18,12 @@ class FiltersConfig:
 
 @dataclass
 class ShardingConfig:
+    enabled: bool = True
+    compression: str = "zstd"
     target_compressed_mb: int = 200
     local_dir: str = "outputs/shards"
+    filename_prefix: str = "bwiza"
+    flush_every_n: int = 500
 
 
 @dataclass
