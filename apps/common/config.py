@@ -6,9 +6,11 @@ import yaml
 
 from apps.common.config_types import (
     AppConfig,
+    CCConfig,
     FiltersConfig,
     LidConfig,
     LoggingConfig,
+    OutputConfig,
     S3Config,
     ShardingConfig,
 )
@@ -18,6 +20,8 @@ _SECTION_MAP = {
     "filters": FiltersConfig,
     "sharding": ShardingConfig,
     "s3": S3Config,
+    "cc": CCConfig,
+    "output": OutputConfig,
     "logging": LoggingConfig,
 }
 

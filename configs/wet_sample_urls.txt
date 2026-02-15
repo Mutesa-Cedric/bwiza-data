@@ -1,0 +1,2 @@
+# Sample WET file URLs for pilot runs
+# One URL per line. Lines starting with # are comments.
