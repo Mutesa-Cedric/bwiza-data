@@ -29,6 +29,24 @@ class S3Config:
 
 
 @dataclass
+class CCConfig:
+    crawl: str = "CC-MAIN-2025-01"
+    wet_paths_file: str = "configs/wet_sample_urls.txt"
+    max_wet_files: int = 10
+    user_agent: str = "bwiza-data/0.1"
+    request_timeout_s: int = 60
+    max_retries: int = 5
+    retry_backoff_s: int = 2
+
+
+@dataclass
+class OutputConfig:
+    local_dir: str = "outputs/cc"
+    shard_prefix: str = "cc_mvp"
+    max_docs_per_run: int = 0
+
+
+@dataclass
 class LoggingConfig:
     level: str = "INFO"
 
@@ -39,4 +57,6 @@ class AppConfig:
     filters: FiltersConfig = field(default_factory=FiltersConfig)
     sharding: ShardingConfig = field(default_factory=ShardingConfig)
     s3: S3Config = field(default_factory=S3Config)
+    cc: CCConfig = field(default_factory=CCConfig)
+    output: OutputConfig = field(default_factory=OutputConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)

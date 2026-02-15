@@ -15,5 +15,19 @@ s3:
   bucket: ""
   prefix: "bwiza/cc/v1/"
 
+cc:
+  crawl: "CC-MAIN-2025-01"
+  wet_paths_file: "configs/wet_sample_urls.txt"
+  max_wet_files: 10
+  user_agent: "bwiza-data/0.1"
+  request_timeout_s: 60
+  max_retries: 5
+  retry_backoff_s: 2
+
+output:
+  local_dir: "outputs/cc"
+  shard_prefix: "cc_mvp"
+  max_docs_per_run: 0
+
 logging:
   level: "INFO"
