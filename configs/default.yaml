@@ -1,0 +1,19 @@
+lid:
+  min_confidence: 0.80
+
+filters:
+  min_chars: 200
+  max_url_ratio: 0.20
+  max_repeat_line_ratio: 0.30
+  min_alpha_ratio: 0.70
+
+sharding:
+  target_compressed_mb: 200
+  local_dir: "outputs/shards"
+
+s3:
+  bucket: ""
+  prefix: "bwiza/cc/v1/"
+
+logging:
+  level: "INFO"

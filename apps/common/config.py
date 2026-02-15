@@ -1,0 +1,63 @@
+"""Config loader with validation."""
+
+from pathlib import Path
+
+import yaml
+
+from apps.common.config_types import (
+    AppConfig,
+    FiltersConfig,
+    LidConfig,
+    LoggingConfig,
+    S3Config,
+    ShardingConfig,
+)
+
+_SECTION_MAP = {
+    "lid": LidConfig,
+    "filters": FiltersConfig,
+    "sharding": ShardingConfig,
+    "s3": S3Config,
+    "logging": LoggingConfig,
+}
+
+
+def load_config(path: str | Path = "configs/default.yaml") -> AppConfig:
+    """Load and validate YAML config, returning a typed AppConfig."""
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Config file not found: {path}")
+
+    with open(path) as f:
+        raw = yaml.safe_load(f) or {}
+
+    sections = {}
+    for key, cls in _SECTION_MAP.items():
+        section_data = raw.get(key, {})
+        if not isinstance(section_data, dict):
+            raise ValueError(f"Config section '{key}' must be a mapping, got {type(section_data).__name__}")
+        sections[key] = cls(**section_data)
+
+    cfg = AppConfig(**sections)
+    _validate(cfg)
+    return cfg
+
+
+def _validate(cfg: AppConfig) -> None:
+    if not 0 <= cfg.lid.min_confidence <= 1:
+        raise ValueError(f"lid.min_confidence must be in [0, 1], got {cfg.lid.min_confidence}")
+
+    if cfg.filters.min_chars <= 0:
+        raise ValueError(f"filters.min_chars must be > 0, got {cfg.filters.min_chars}")
+
+    if not 0 <= cfg.filters.max_url_ratio <= 1:
+        raise ValueError(f"filters.max_url_ratio must be in [0, 1], got {cfg.filters.max_url_ratio}")
+
+    if not 0 <= cfg.filters.max_repeat_line_ratio <= 1:
+        raise ValueError(f"filters.max_repeat_line_ratio must be in [0, 1], got {cfg.filters.max_repeat_line_ratio}")
+
+    if not 0 <= cfg.filters.min_alpha_ratio <= 1:
+        raise ValueError(f"filters.min_alpha_ratio must be in [0, 1], got {cfg.filters.min_alpha_ratio}")
+
+    if cfg.sharding.target_compressed_mb <= 0:
+        raise ValueError(f"sharding.target_compressed_mb must be > 0, got {cfg.sharding.target_compressed_mb}")

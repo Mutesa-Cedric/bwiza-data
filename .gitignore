@@ -1,0 +1,39 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+
+# Data artifacts
+data/
+shards/
+outputs/
+
+# Compressed / raw data
+*.jsonl
+*.zst
+*.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Manifests state (local runtime)
+manifests/state/*.lock
+
+# Documentation
+docs/
