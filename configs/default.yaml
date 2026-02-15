@@ -8,8 +8,12 @@ filters:
   min_alpha_ratio: 0.70
 
 sharding:
+  enabled: true
+  compression: "zstd"
   target_compressed_mb: 200
   local_dir: "outputs/shards"
+  filename_prefix: "bwiza"
+  flush_every_n: 500
 
 s3:
   bucket: ""

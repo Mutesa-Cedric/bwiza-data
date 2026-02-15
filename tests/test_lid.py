@@ -10,7 +10,9 @@ def test_predict_lang_returns_tuple():
         mock_model = MagicMock()
         mock_model.predict.return_value = (["__label__kin_Latn"], [0.95])
 
-        with patch.object(lid, "_load_model", side_effect=lambda: setattr(lid, "_model", mock_model)):
+        with patch.object(
+            lid, "_load_model", side_effect=lambda: setattr(lid, "_model", mock_model)
+        ):
             lang, score, model_name = lid.predict_lang("Muraho neza")
             assert lang == "kin_Latn"
             assert score == 0.95
@@ -22,7 +24,9 @@ def test_predict_lang_strips_label_prefix():
         mock_model = MagicMock()
         mock_model.predict.return_value = (["__label__eng_Latn"], [0.88])
 
-        with patch.object(lid, "_load_model", side_effect=lambda: setattr(lid, "_model", mock_model)):
+        with patch.object(
+            lid, "_load_model", side_effect=lambda: setattr(lid, "_model", mock_model)
+        ):
             lang, score, _ = lid.predict_lang("Hello world")
             assert lang == "eng_Latn"
             assert score == 0.88

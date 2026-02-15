@@ -2,8 +2,8 @@
 
 import json
 
-from apps.common.config_types import AppConfig
 from apps.cc_miner.writer import LocalWriter
+from apps.common.config_types import AppConfig
 
 
 def _cfg(tmp_path) -> AppConfig:

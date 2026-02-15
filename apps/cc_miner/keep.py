@@ -31,18 +31,16 @@ def decide_keep(raw_text: str, cfg: AppConfig) -> KeepDecision:
     lang, score, _model = predict_lang(text)
 
     if lang not in _RW_LABELS:
-        return KeepDecision(keep=False, reason="reject.lid.not_rw",
-                            lang=lang, lid_score=score)
+        return KeepDecision(keep=False, reason="reject.lid.not_rw", lang=lang, lid_score=score)
 
     required = max(cfg.lid.min_confidence, required_confidence_for_length(len(text)))
     if score < required:
-        return KeepDecision(keep=False, reason="reject.lid.low_confidence",
-                            lang=lang, lid_score=score)
+        return KeepDecision(
+            keep=False, reason="reject.lid.low_confidence", lang=lang, lid_score=score
+        )
 
     passed, reasons = run_filters(text, cfg)
     if not passed:
-        return KeepDecision(keep=False, reason=reasons[0],
-                            lang=lang, lid_score=score)
+        return KeepDecision(keep=False, reason=reasons[0], lang=lang, lid_score=score)
 
-    return KeepDecision(keep=True, reason="keep",
-                        lang=lang, lid_score=score, normalized_text=text)
+    return KeepDecision(keep=True, reason="keep", lang=lang, lid_score=score, normalized_text=text)

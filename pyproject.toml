@@ -15,10 +15,18 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.0",
+    "ruff>=0.15",
 ]
 
 [tool.setuptools.packages.find]
 include = ["apps*"]
+
+[tool.ruff]
+line-length = 99
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

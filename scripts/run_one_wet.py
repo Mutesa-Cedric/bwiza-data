@@ -3,14 +3,14 @@
 
 import sys
 
+from apps.cc_miner.run_one import run_one_wet
+from apps.cc_miner.stats import RunStats
+from apps.cc_miner.writer import LocalWriter
 from apps.common.config import load_config
 from apps.common.dedup_exact import ExactDedupStore
 from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
 from apps.common.logging import setup_logging
-from apps.cc_miner.run_one import run_one_wet
-from apps.cc_miner.stats import RunStats
-from apps.cc_miner.writer import LocalWriter
 
 
 def main() -> int:
@@ -37,7 +37,7 @@ def main() -> int:
         stats.write_json(cfg.output.local_dir, run_id)
 
     d = stats.to_dict()
-    print(f"\n--- Stats ---")
+    print("\n--- Stats ---")
     for k, v in d.items():
         print(f"  {k}: {v}")
 

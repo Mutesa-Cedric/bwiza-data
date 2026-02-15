@@ -41,7 +41,7 @@ def parse_wet(lines_iter: Iterator[str]) -> Iterator[WetRecord]:
 
         if not header_done:
             if line.startswith(_TARGET_URI_PREFIX):
-                url = line[len(_TARGET_URI_PREFIX):].strip()
+                url = line[len(_TARGET_URI_PREFIX) :].strip()
             elif line == "":
                 # Empty line separates headers from payload
                 header_done = True

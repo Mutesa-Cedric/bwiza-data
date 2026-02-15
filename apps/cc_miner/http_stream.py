@@ -29,11 +29,18 @@ def stream_download(url: str, cfg: AppConfig) -> Iterator[bytes]:
             last_exc = exc
             if attempt < cfg.cc.max_retries:
                 wait = cfg.cc.retry_backoff_s * (2 ** (attempt - 1))
-                log.warning("Attempt %d/%d failed for %s: %s. Retrying in %ds",
-                            attempt, cfg.cc.max_retries, url, exc, wait)
+                log.warning(
+                    "Attempt %d/%d failed for %s: %s. Retrying in %ds",
+                    attempt,
+                    cfg.cc.max_retries,
+                    url,
+                    exc,
+                    wait,
+                )
                 time.sleep(wait)
             else:
-                log.error("All %d attempts failed for %s: %s",
-                          cfg.cc.max_retries, url, exc)
+                log.error("All %d attempts failed for %s: %s", cfg.cc.max_retries, url, exc)
 
-    raise ConnectionError(f"Failed to download {url} after {cfg.cc.max_retries} attempts") from last_exc
+    raise ConnectionError(
+        f"Failed to download {url} after {cfg.cc.max_retries} attempts"
+    ) from last_exc
