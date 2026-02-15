@@ -19,5 +19,6 @@ def test_hash_is_hex_sha256():
 
 def test_hash_known_value():
     import hashlib
+
     expected = hashlib.sha256(b"muraho").hexdigest()
     assert hash_text("muraho") == expected

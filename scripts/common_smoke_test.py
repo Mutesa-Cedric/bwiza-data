@@ -52,8 +52,12 @@ def main() -> int:
 
     # Schema
     doc = Document(
-        id=h, text=text, source="test", lang="rw",
-        lid_model="test", lid_score=0.95,
+        id=h,
+        text=text,
+        source="test",
+        lang="rw",
+        lid_model="test",
+        lid_score=0.95,
     )
     j = doc.to_json()
     assert j["id"] == h

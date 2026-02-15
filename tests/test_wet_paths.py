@@ -1,10 +1,7 @@
 """Tests for WET URL list loader."""
 
-import tempfile
-from pathlib import Path
-
-from apps.common.config_types import AppConfig
 from apps.cc_miner.wet_paths import get_wet_urls
+from apps.common.config_types import AppConfig
 
 
 def _cfg_with_file(path: str, max_wet: int = 0) -> AppConfig:
@@ -44,5 +41,6 @@ def test_empty_file(tmp_path):
 
 def test_missing_file_raises():
     import pytest
+
     with pytest.raises(FileNotFoundError):
         get_wet_urls(_cfg_with_file("/nonexistent/file.txt"))

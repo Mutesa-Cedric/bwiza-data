@@ -101,8 +101,12 @@ class ShardWriter:
             created_at=datetime.now(timezone.utc).isoformat(),
         )
         self._closed_shards.append(meta)
-        log.info("Shard closed: %s (%d records, %d bytes)",
-                 self._current_name, meta.records_count, meta.bytes)
+        log.info(
+            "Shard closed: %s (%d records, %d bytes)",
+            self._current_name,
+            meta.records_count,
+            meta.bytes,
+        )
 
         self._open_shard()
         return meta

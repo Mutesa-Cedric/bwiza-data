@@ -1,7 +1,5 @@
 """Tests for manifest writer."""
 
-import json
-
 from apps.common.manifest import append_manifest_entry, read_manifest
 from apps.common.shard_writer import ShardMeta
 

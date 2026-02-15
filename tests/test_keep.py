@@ -2,10 +2,10 @@
 
 from unittest.mock import patch
 
+from apps.cc_miner.keep import decide_keep
 from apps.common.config_types import AppConfig
 from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
-from apps.cc_miner.keep import decide_keep
 
 
 def _cfg() -> AppConfig:

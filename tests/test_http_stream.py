@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from apps.common.config_types import AppConfig
 from apps.cc_miner.http_stream import stream_download
+from apps.common.config_types import AppConfig
 
 
 def _cfg() -> AppConfig:

@@ -1,7 +1,6 @@
 """Tests for WET record parser."""
 
-from apps.cc_miner.wet_parser import WetRecord, parse_wet
-
+from apps.cc_miner.wet_parser import parse_wet
 
 _SAMPLE_WET = """WARC/1.0
 WARC-Type: conversion

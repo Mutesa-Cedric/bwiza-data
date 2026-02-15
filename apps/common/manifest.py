@@ -17,8 +17,9 @@ def manifest_path(run_id: str, base_dir: str = "manifests/shards") -> Path:
     return p / f"{run_id}.jsonl"
 
 
-def append_manifest_entry(run_id: str, entry: ShardMeta, source: str = "",
-                          base_dir: str = "manifests/shards") -> None:
+def append_manifest_entry(
+    run_id: str, entry: ShardMeta, source: str = "", base_dir: str = "manifests/shards"
+) -> None:
     """Append a shard entry to the run manifest."""
     path = manifest_path(run_id, base_dir)
     record = {

@@ -17,15 +17,12 @@ def _load_model():
         import fasttext
         from huggingface_hub import hf_hub_download
 
-        model_path = hf_hub_download(
-            repo_id="cis-lmu/glotlid", filename="model.bin"
-        )
+        model_path = hf_hub_download(repo_id="cis-lmu/glotlid", filename="model.bin")
         _model = fasttext.load_model(model_path)
         log.info("GlotLID model loaded from %s", model_path)
     except Exception as exc:
         raise RuntimeError(
-            "Failed to load GlotLID model. "
-            "Install: pip install fasttext-wheel huggingface_hub"
+            "Failed to load GlotLID model. Install: pip install fasttext-wheel huggingface_hub"
         ) from exc
 
 

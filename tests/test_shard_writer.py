@@ -72,5 +72,6 @@ def test_tmp_renamed_to_final(tmp_path):
 
     # Final path should exist, no .tmp
     from pathlib import Path
+
     assert Path(meta.path).exists()
     assert not Path(meta.path + ".tmp").exists()
