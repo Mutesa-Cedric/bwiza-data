@@ -4,8 +4,8 @@
 Usage:
     python scripts/run_scheduled.py --pipeline cc_miner
     python scripts/run_scheduled.py --pipeline targeted_crawler --resume <run_id>
-    python scripts/run_scheduled.py --pipeline parallel
-    python scripts/run_scheduled.py --pipeline instructions
+    python scripts/run_scheduled.py --pipeline parallel --resume <run_id>
+    python scripts/run_scheduled.py --pipeline instructions --resume <run_id>
 
 Exits 0 on success, 1 on failure. Safe for cron/GitHub Actions.
 """
@@ -36,11 +36,11 @@ def _run_pipeline(pipeline: str, cfg, resume_run_id: str = "") -> int:
     elif pipeline == "parallel":
         from apps.parallel_corpus.run import run_parallel_corpus
 
-        stats = run_parallel_corpus(cfg)
+        stats = run_parallel_corpus(cfg, resume_run_id=resume_run_id)
     elif pipeline == "instructions":
         from apps.instructions.run import run_instructions
 
-        stats = run_instructions(cfg)
+        stats = run_instructions(cfg, resume_run_id=resume_run_id)
     else:
         log.error("Unknown pipeline: %s", pipeline)
         return 1

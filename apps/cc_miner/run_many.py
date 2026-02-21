@@ -11,10 +11,12 @@ from apps.common.config_types import AppConfig
 from apps.common.dedup_exact import ExactDedupStore
 from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
+from apps.common.guardrails import GuardrailChecker
 from apps.common.logging import get_logger
 from apps.common.manifest import append_manifest_entry
 from apps.common.run_state import RunState
 from apps.common.run_state_store import load_done_set, load_state, mark_done, save_state
+from apps.common.run_state_sync import upload_done_list, upload_state
 from apps.common.s3_paths import shard_key
 from apps.common.s3_upload import upload_file, verify_upload
 from apps.common.shard_writer import ShardWriter
@@ -67,6 +69,7 @@ def run_cc_miner(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
 
     log.info("CC miner run=%s with %d WET files", run_id, len(wet_urls))
 
+    guardrails = GuardrailChecker(cfg.guardrails)
     dedup = ExactDedupStore()
     stats = RunStats()
 
@@ -96,6 +99,15 @@ def run_cc_miner(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         except Exception:
             log.exception("S3 upload failed for %s, keeping local copy", meta.filename)
 
+    def _sync_state_to_s3():
+        if s3_client is not None:
+            try:
+                upload_state(s3_client, cfg.s3.bucket, state)
+                done_file = f"manifests/state/{run_id}.done.txt"
+                upload_done_list(s3_client, cfg.s3.bucket, run_id, done_file)
+            except Exception:
+                log.exception("S3 state sync failed")
+
     def on_shard_closed(meta):
         append_manifest_entry(run_id, meta, source="commoncrawl")
         state.shards_closed += 1
@@ -105,6 +117,7 @@ def run_cc_miner(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         if s3_client is not None:
             _upload_shard(meta)
             state.uploaded_shards += 1
+            _sync_state_to_s3()
 
     try:
         for i, url in enumerate(wet_urls, 1):
@@ -133,11 +146,19 @@ def run_cc_miner(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                 save_state(state)
                 continue
 
+            # Check guardrails
+            triggered, reason = guardrails.check(state)
+            if triggered:
+                log.info("Guardrail triggered: %s", reason)
+                state.pause(reason)
+                break
+
             if cfg.output.max_docs_per_run > 0 and stats.docs_kept >= cfg.output.max_docs_per_run:
                 log.info("Global doc limit reached, stopping.")
                 break
 
-        state.complete()
+        if state.status == "running":
+            state.complete()
     except KeyboardInterrupt:
         log.warning("Interrupted by user. Flushing output.")
         state.pause("interrupted")
@@ -150,6 +171,7 @@ def run_cc_miner(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
             on_shard_closed(final_meta)
         state.current_item = ""
         save_state(state)
+        _sync_state_to_s3()
         stats.write_json(cfg.output.local_dir, run_id)
 
     log.info(
