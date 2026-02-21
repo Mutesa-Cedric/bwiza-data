@@ -16,8 +16,20 @@ sharding:
   flush_every_n: 500
 
 s3:
+  enabled: false
   bucket: ""
   prefix: "bwiza/cc/v1/"
+  region: ""
+  profile: ""
+  endpoint_url: ""
+  multipart_threshold_mb: 64
+  multipart_chunk_mb: 16
+  max_retries: 8
+  retry_backoff_s: 2
+  verify_after_upload: true
+  keep_local_after_upload: true
+  upload_manifests: true
+  upload_stats: true
 
 cc:
   crawl: "CC-MAIN-2025-01"

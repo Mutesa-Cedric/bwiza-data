@@ -69,3 +69,29 @@ def test_invalid_section_type():
         _write_yaml({"lid": "not_a_dict"}, p)
         with pytest.raises(ValueError, match="must be a mapping"):
             load_config(p)
+
+
+def test_s3_enabled_requires_bucket():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"s3": {"enabled": True, "bucket": ""}}, p)
+        with pytest.raises(ValueError, match="s3.bucket must be set"):
+            load_config(p)
+
+
+def test_s3_enabled_with_bucket_ok():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "ok.yaml"
+        _write_yaml({"s3": {"enabled": True, "bucket": "my-bucket"}}, p)
+        cfg = load_config(p)
+        assert cfg.s3.enabled is True
+        assert cfg.s3.bucket == "my-bucket"
+        assert cfg.s3.verify_after_upload is True
+
+
+def test_s3_disabled_no_bucket_ok():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "ok.yaml"
+        _write_yaml({"s3": {"enabled": False}}, p)
+        cfg = load_config(p)
+        assert cfg.s3.enabled is False

@@ -74,3 +74,14 @@ def _validate(cfg: AppConfig) -> None:
         raise ValueError(
             f"sharding.target_compressed_mb must be > 0, got {cfg.sharding.target_compressed_mb}"
         )
+
+    if cfg.s3.enabled and not cfg.s3.bucket:
+        raise ValueError("s3.bucket must be set when s3.enabled is true")
+
+    if cfg.s3.multipart_threshold_mb <= 0:
+        raise ValueError(
+            f"s3.multipart_threshold_mb must be > 0, got {cfg.s3.multipart_threshold_mb}"
+        )
+
+    if cfg.s3.multipart_chunk_mb <= 0:
+        raise ValueError(f"s3.multipart_chunk_mb must be > 0, got {cfg.s3.multipart_chunk_mb}")

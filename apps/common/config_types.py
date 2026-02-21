@@ -28,8 +28,20 @@ class ShardingConfig:
 
 @dataclass
 class S3Config:
+    enabled: bool = False
     bucket: str = ""
     prefix: str = "bwiza/cc/v1/"
+    region: str = ""
+    profile: str = ""
+    endpoint_url: str = ""
+    multipart_threshold_mb: int = 64
+    multipart_chunk_mb: int = 16
+    max_retries: int = 8
+    retry_backoff_s: int = 2
+    verify_after_upload: bool = True
+    keep_local_after_upload: bool = True
+    upload_manifests: bool = True
+    upload_stats: bool = True
 
 
 @dataclass
