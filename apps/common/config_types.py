@@ -86,6 +86,25 @@ class TargetedConfig:
 
 
 @dataclass
+class ParallelConfig:
+    enabled: bool = False
+    seeds_file: str = "configs/parallel_seeds.txt"
+    max_pages: int = 20000
+    per_domain_max_pages: int = 5000
+    concurrency: int = 8
+    request_timeout_s: int = 30
+    max_retries: int = 5
+    retry_backoff_s: int = 2
+    obey_robots_txt: bool = True
+    crawl_delay_s: float = 1.0
+    max_response_bytes: int = 8_000_000
+    extract_mode: str = "page_pairs"
+    min_chars: int = 120
+    min_lid_conf: float = 0.85
+    output_source: str = "parallel_web"
+
+
+@dataclass
 class AppConfig:
     lid: LidConfig = field(default_factory=LidConfig)
     filters: FiltersConfig = field(default_factory=FiltersConfig)
@@ -95,3 +114,4 @@ class AppConfig:
     output: OutputConfig = field(default_factory=OutputConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     targeted: TargetedConfig = field(default_factory=TargetedConfig)
+    parallel: ParallelConfig = field(default_factory=ParallelConfig)

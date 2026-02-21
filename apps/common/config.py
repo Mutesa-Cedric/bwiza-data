@@ -11,6 +11,7 @@ from apps.common.config_types import (
     LidConfig,
     LoggingConfig,
     OutputConfig,
+    ParallelConfig,
     S3Config,
     ShardingConfig,
     TargetedConfig,
@@ -25,6 +26,7 @@ _SECTION_MAP = {
     "output": OutputConfig,
     "logging": LoggingConfig,
     "targeted": TargetedConfig,
+    "parallel": ParallelConfig,
 }
 
 
@@ -103,3 +105,14 @@ def _validate(cfg: AppConfig) -> None:
         raise ValueError(
             f"targeted.max_response_bytes must be > 0, got {cfg.targeted.max_response_bytes}"
         )
+
+    if cfg.parallel.min_chars <= 0:
+        raise ValueError(f"parallel.min_chars must be > 0, got {cfg.parallel.min_chars}")
+
+    if not 0 <= cfg.parallel.min_lid_conf <= 1:
+        raise ValueError(
+            f"parallel.min_lid_conf must be in [0, 1], got {cfg.parallel.min_lid_conf}"
+        )
+
+    if cfg.parallel.max_pages <= 0:
+        raise ValueError(f"parallel.max_pages must be > 0, got {cfg.parallel.max_pages}")
