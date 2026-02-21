@@ -20,6 +20,7 @@ from apps.targeted_crawler.links import extract_links
 from apps.targeted_crawler.pipeline import process_page
 from apps.targeted_crawler.rate_limit import DomainRateLimiter
 from apps.targeted_crawler.robots import RobotsChecker
+from apps.targeted_crawler.safety import check_redirect_safety, is_safe_url
 from apps.targeted_crawler.seeds import canonical_domain, domain_set_from_seeds, load_seeds
 
 log = get_logger(__name__)
@@ -110,12 +111,13 @@ def run_targeted_crawler(cfg: AppConfig) -> RunStats:
                 stats.reject_reasons[f"reject.fetch.{result.error}"] += 1
                 continue
 
-            # Safety: check final URL is still in allowlist
-            if result.final_url and result.final_url != url:
-                final_domain = _domain_from_url(result.final_url)
-                if final_domain and final_domain not in allowed_domains:
-                    stats.reject_reasons["reject.redirect_off_allowlist"] += 1
-                    continue
+            # Safety: check redirect stays in allowlist
+            redirect_ok, redirect_reason = check_redirect_safety(
+                url, result.final_url, allowed_domains
+            )
+            if not redirect_ok:
+                stats.reject_reasons[f"reject.{redirect_reason}"] += 1
+                continue
 
             # Extract main text
             extracted = extract_main_text(result.content, url=result.final_url or url)
@@ -140,9 +142,10 @@ def run_targeted_crawler(cfg: AppConfig) -> RunStats:
             if shard_result is not None:
                 on_shard_closed(shard_result)
 
-            # Discover links from this page
-            links = extract_links(result.content, result.final_url or url)
-            frontier.add_links(links)
+            # Discover links from this page (pre-filter unsafe URLs)
+            raw_links = extract_links(result.content, result.final_url or url)
+            safe_links = [lnk for lnk in raw_links if is_safe_url(lnk, allowed_domains)[0]]
+            frontier.add_links(safe_links)
 
             if frontier.total_fetched % 100 == 0:
                 log.info(
