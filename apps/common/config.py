@@ -8,6 +8,7 @@ from apps.common.config_types import (
     AppConfig,
     CCConfig,
     FiltersConfig,
+    InstructionsConfig,
     LidConfig,
     LoggingConfig,
     OutputConfig,
@@ -27,6 +28,7 @@ _SECTION_MAP = {
     "logging": LoggingConfig,
     "targeted": TargetedConfig,
     "parallel": ParallelConfig,
+    "instructions": InstructionsConfig,
 }
 
 
@@ -116,3 +118,17 @@ def _validate(cfg: AppConfig) -> None:
 
     if cfg.parallel.max_pages <= 0:
         raise ValueError(f"parallel.max_pages must be > 0, got {cfg.parallel.max_pages}")
+
+    if cfg.instructions.min_chars_prompt <= 0:
+        raise ValueError(
+            f"instructions.min_chars_prompt must be > 0, got {cfg.instructions.min_chars_prompt}"
+        )
+
+    if cfg.instructions.max_chars_response <= 0:
+        val = cfg.instructions.max_chars_response
+        raise ValueError(f"instructions.max_chars_response must be > 0, got {val}")
+
+    if cfg.instructions.target_count <= 0:
+        raise ValueError(
+            f"instructions.target_count must be > 0, got {cfg.instructions.target_count}"
+        )

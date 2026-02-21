@@ -105,6 +105,19 @@ class ParallelConfig:
 
 
 @dataclass
+class InstructionsConfig:
+    enabled: bool = False
+    seed_file: str = "configs/instruction_seeds.jsonl"
+    output_source: str = "instructions_rw"
+    min_chars_prompt: int = 4
+    min_chars_response: int = 8
+    max_chars_prompt: int = 4000
+    max_chars_response: int = 8000
+    allow_english_ratio: float = 0.05
+    target_count: int = 20000
+
+
+@dataclass
 class AppConfig:
     lid: LidConfig = field(default_factory=LidConfig)
     filters: FiltersConfig = field(default_factory=FiltersConfig)
@@ -115,3 +128,4 @@ class AppConfig:
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     targeted: TargetedConfig = field(default_factory=TargetedConfig)
     parallel: ParallelConfig = field(default_factory=ParallelConfig)
+    instructions: InstructionsConfig = field(default_factory=InstructionsConfig)

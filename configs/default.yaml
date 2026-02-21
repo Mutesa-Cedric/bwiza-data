@@ -78,5 +78,16 @@ parallel:
   min_lid_conf: 0.85
   output_source: "parallel_web"
 
+instructions:
+  enabled: false
+  seed_file: "configs/instruction_seeds.jsonl"
+  output_source: "instructions_rw"
+  min_chars_prompt: 4
+  min_chars_response: 8
+  max_chars_prompt: 4000
+  max_chars_response: 8000
+  allow_english_ratio: 0.05
+  target_count: 20000
+
 logging:
   level: "INFO"
