@@ -32,7 +32,7 @@ s3:
   upload_stats: true
 
 cc:
-  crawl: "CC-MAIN-2025-01"
+  crawl: "CC-MAIN-2026-04"
   wet_paths_file: "configs/wet_sample_urls.txt"
   max_wet_files: 10
   user_agent: "bwiza-data/0.1"

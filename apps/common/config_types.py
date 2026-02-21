@@ -46,7 +46,7 @@ class S3Config:
 
 @dataclass
 class CCConfig:
-    crawl: str = "CC-MAIN-2025-01"
+    crawl: str = "CC-MAIN-2026-04"
     wet_paths_file: str = "configs/wet_sample_urls.txt"
     max_wet_files: int = 10
     user_agent: str = "bwiza-data/0.1"
