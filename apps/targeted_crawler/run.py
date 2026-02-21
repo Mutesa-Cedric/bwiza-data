@@ -10,6 +10,8 @@ from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
 from apps.common.logging import get_logger
 from apps.common.manifest import append_manifest_entry
+from apps.common.s3_paths import shard_key
+from apps.common.s3_upload import upload_file, verify_upload
 from apps.common.shard_writer import ShardWriter
 from apps.targeted_crawler.extract import extract_main_text
 from apps.targeted_crawler.fetch import fetch_url
@@ -56,8 +58,30 @@ def run_targeted_crawler(cfg: AppConfig) -> RunStats:
     # Shard writer
     writer = ShardWriter(cfg.sharding, source=tcfg.output_source, run_id=run_id)
 
+    # S3 upload setup (targeted uses "bwiza/curated/v1/targeted_web/" prefix)
+    s3_client = None
+    s3_prefix = "bwiza/curated/v1/targeted_web/"
+    if cfg.s3.enabled:
+        from apps.common.s3_client import get_s3_client
+
+        s3_client = get_s3_client(cfg.s3)
+        log.info("S3 upload enabled for targeted: bucket=%s prefix=%s", cfg.s3.bucket, s3_prefix)
+
+    def _upload_shard(meta):
+        """Upload a closed shard to S3."""
+        key = shard_key(s3_prefix, run_id, meta.filename)
+        try:
+            result = upload_file(s3_client, meta.path, cfg.s3.bucket, key, cfg.s3)
+            if not result.skipped and cfg.s3.verify_after_upload:
+                if not verify_upload(s3_client, meta.path, cfg.s3.bucket, key):
+                    log.error("Verification failed for %s, keeping local copy", key)
+        except Exception:
+            log.exception("S3 upload failed for %s, keeping local copy", meta.filename)
+
     def on_shard_closed(meta):
         append_manifest_entry(run_id, meta, source=tcfg.output_source)
+        if s3_client is not None:
+            _upload_shard(meta)
 
     try:
         while True:
