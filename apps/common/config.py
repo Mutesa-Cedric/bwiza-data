@@ -8,9 +8,11 @@ from apps.common.config_types import (
     AppConfig,
     CCConfig,
     FiltersConfig,
+    InstructionsConfig,
     LidConfig,
     LoggingConfig,
     OutputConfig,
+    ParallelConfig,
     S3Config,
     ShardingConfig,
     TargetedConfig,
@@ -25,6 +27,8 @@ _SECTION_MAP = {
     "output": OutputConfig,
     "logging": LoggingConfig,
     "targeted": TargetedConfig,
+    "parallel": ParallelConfig,
+    "instructions": InstructionsConfig,
 }
 
 
@@ -102,4 +106,29 @@ def _validate(cfg: AppConfig) -> None:
     if cfg.targeted.max_response_bytes <= 0:
         raise ValueError(
             f"targeted.max_response_bytes must be > 0, got {cfg.targeted.max_response_bytes}"
+        )
+
+    if cfg.parallel.min_chars <= 0:
+        raise ValueError(f"parallel.min_chars must be > 0, got {cfg.parallel.min_chars}")
+
+    if not 0 <= cfg.parallel.min_lid_conf <= 1:
+        raise ValueError(
+            f"parallel.min_lid_conf must be in [0, 1], got {cfg.parallel.min_lid_conf}"
+        )
+
+    if cfg.parallel.max_pages <= 0:
+        raise ValueError(f"parallel.max_pages must be > 0, got {cfg.parallel.max_pages}")
+
+    if cfg.instructions.min_chars_prompt <= 0:
+        raise ValueError(
+            f"instructions.min_chars_prompt must be > 0, got {cfg.instructions.min_chars_prompt}"
+        )
+
+    if cfg.instructions.max_chars_response <= 0:
+        val = cfg.instructions.max_chars_response
+        raise ValueError(f"instructions.max_chars_response must be > 0, got {val}")
+
+    if cfg.instructions.target_count <= 0:
+        raise ValueError(
+            f"instructions.target_count must be > 0, got {cfg.instructions.target_count}"
         )

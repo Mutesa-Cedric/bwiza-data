@@ -1,0 +1,16 @@
+# Bilingual Rwanda sites likely to have rw↔en page pairs
+# One domain or URL per line
+
+# Government (often bilingual)
+gov.rw
+mineduc.gov.rw
+
+# International orgs
+rw.wikipedia.org
+
+# Religious sites (often multilingual)
+jw.org
+
+# News with English editions
+igihe.com
+ktpress.rw

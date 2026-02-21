@@ -129,3 +129,45 @@ def test_targeted_invalid_max_response_bytes():
         _write_yaml({"targeted": {"max_response_bytes": 0}}, p)
         with pytest.raises(ValueError, match="targeted.max_response_bytes"):
             load_config(p)
+
+
+def test_parallel_defaults_loaded():
+    cfg = load_config("configs/default.yaml")
+    assert cfg.parallel.enabled is False
+    assert cfg.parallel.min_chars == 120
+    assert cfg.parallel.min_lid_conf == 0.85
+    assert cfg.parallel.extract_mode == "page_pairs"
+    assert cfg.parallel.output_source == "parallel_web"
+
+
+def test_parallel_invalid_min_chars():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"parallel": {"min_chars": 0}}, p)
+        with pytest.raises(ValueError, match="parallel.min_chars"):
+            load_config(p)
+
+
+def test_parallel_invalid_min_lid_conf():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"parallel": {"min_lid_conf": 1.5}}, p)
+        with pytest.raises(ValueError, match="parallel.min_lid_conf"):
+            load_config(p)
+
+
+def test_instructions_defaults_loaded():
+    cfg = load_config("configs/default.yaml")
+    assert cfg.instructions.enabled is False
+    assert cfg.instructions.min_chars_prompt == 4
+    assert cfg.instructions.max_chars_response == 8000
+    assert cfg.instructions.target_count == 20000
+    assert cfg.instructions.output_source == "instructions_rw"
+
+
+def test_instructions_invalid_target_count():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"instructions": {"target_count": 0}}, p)
+        with pytest.raises(ValueError, match="instructions.target_count"):
+            load_config(p)
