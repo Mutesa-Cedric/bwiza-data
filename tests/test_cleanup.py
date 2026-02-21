@@ -6,15 +6,16 @@ from apps.common.cleanup import cleanup_uploaded_shards
 from apps.common.config_types import S3Config
 
 
-def _s3_cfg(**overrides) -> S3Config:
-    defaults = dict(
+def _s3_cfg(**overrides: object) -> S3Config:
+    cfg = S3Config(
         enabled=True,
         bucket="test-bucket",
         prefix="bwiza/cc/v1/",
         keep_local_after_upload=False,
     )
-    defaults.update(overrides)
-    return S3Config(**defaults)
+    for k, v in overrides.items():
+        setattr(cfg, k, v)
+    return cfg
 
 
 def test_skips_when_keep_local_true():

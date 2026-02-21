@@ -24,9 +24,9 @@ class _HreflangParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == "link":
             attr_dict = dict(attrs)
-            rel = attr_dict.get("rel", "")
-            hreflang = attr_dict.get("hreflang", "")
-            href = attr_dict.get("href", "")
+            rel = attr_dict.get("rel") or ""
+            hreflang = attr_dict.get("hreflang") or ""
+            href = attr_dict.get("href") or ""
             if "alternate" in rel and hreflang and href:
                 self.hreflangs[hreflang.lower()] = href
 

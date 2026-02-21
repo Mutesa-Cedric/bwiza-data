@@ -6,10 +6,11 @@ from apps.common.guardrails import GuardrailChecker, GuardrailConfig
 from apps.common.run_state import RunState
 
 
-def _state(**overrides):
-    defaults = {"run_id": "test", "pipeline": "cc_miner"}
-    defaults.update(overrides)
-    return RunState(**defaults)
+def _state(**overrides: object) -> RunState:
+    state = RunState(run_id="test", pipeline="cc_miner")
+    for k, v in overrides.items():
+        setattr(state, k, v)
+    return state
 
 
 def test_no_guardrails_pass():

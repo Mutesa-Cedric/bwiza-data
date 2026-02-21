@@ -1,20 +1,26 @@
 """Core quality filters (v1)."""
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from apps.common.filters.base import FilterResult, register_filter
+
+if TYPE_CHECKING:
+    from apps.common.config_types import AppConfig
 
 _URL_PATTERN = re.compile(r"https?://\S+")
 
 
-def _min_chars_filter(text: str, cfg: object) -> FilterResult:
+def _min_chars_filter(text: str, cfg: AppConfig) -> FilterResult:
     threshold = cfg.filters.min_chars
     if len(text) < threshold:
         return FilterResult(passed=False, reason="reject.filter.min_chars")
     return FilterResult(passed=True, reason="keep")
 
 
-def _url_ratio_filter(text: str, cfg: object) -> FilterResult:
+def _url_ratio_filter(text: str, cfg: AppConfig) -> FilterResult:
     if not text:
         return FilterResult(passed=True, reason="keep")
     url_chars = sum(len(m.group()) for m in _URL_PATTERN.finditer(text))
@@ -28,7 +34,7 @@ def _url_ratio_filter(text: str, cfg: object) -> FilterResult:
     return FilterResult(passed=True, reason="keep")
 
 
-def _alpha_ratio_filter(text: str, cfg: object) -> FilterResult:
+def _alpha_ratio_filter(text: str, cfg: AppConfig) -> FilterResult:
     if not text:
         return FilterResult(passed=False, reason="reject.filter.alpha_ratio")
     alpha_count = sum(1 for c in text if c.isalpha())
@@ -42,7 +48,7 @@ def _alpha_ratio_filter(text: str, cfg: object) -> FilterResult:
     return FilterResult(passed=True, reason="keep")
 
 
-def _repetition_filter(text: str, cfg: object) -> FilterResult:
+def _repetition_filter(text: str, cfg: AppConfig) -> FilterResult:
     lines = text.split("\n")
     if len(lines) < 2:
         return FilterResult(passed=True, reason="keep")

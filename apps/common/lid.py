@@ -47,11 +47,12 @@ def _load_model():
 def predict_lang(text: str) -> tuple[str, float, str]:
     """Predict language of text. Returns (lang_code, confidence, model_name)."""
     _load_model()
+    assert _model is not None
 
     # fasttext expects single line
     clean = text.replace("\n", " ")[:5000]
     predictions = _model.predict(clean, k=1)
-    label = predictions[0][0]  # e.g. "__label__kin_Latn"
+    label = predictions[0][0]  # e.g. "__label__kin_Latn"  # type: ignore[index]
     score = float(predictions[1][0])
 
     # Extract language code: __label__kin_Latn -> kin_Latn

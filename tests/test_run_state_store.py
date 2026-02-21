@@ -50,6 +50,7 @@ def test_save_overwrites_atomically():
         save_state(state, base_dir=d)
 
         loaded = load_state("test_run_001", base_dir=d)
+        assert loaded is not None
         assert loaded.items_done == 5
 
 
@@ -60,6 +61,7 @@ def test_save_updates_updated_at():
         save_state(state, base_dir=d)
 
         loaded = load_state("test_run_001", base_dir=d)
+        assert loaded is not None
         assert loaded.updated_at != ""
 
 

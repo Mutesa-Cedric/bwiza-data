@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Callable
 
+from apps.common.config_types import AppConfig
+
 
 @dataclass
 class FilterResult:
@@ -13,7 +15,7 @@ class FilterResult:
     metrics: dict = field(default_factory=dict)
 
 
-FilterFn = Callable[[str, object], FilterResult]
+FilterFn = Callable[[str, AppConfig], FilterResult]
 
 _REGISTRY: list[tuple[str, FilterFn]] = []
 
@@ -23,7 +25,7 @@ def register_filter(name: str, fn: FilterFn) -> None:
     _REGISTRY.append((name, fn))
 
 
-def run_filters(text: str, cfg: object) -> tuple[bool, list[str]]:
+def run_filters(text: str, cfg: AppConfig) -> tuple[bool, list[str]]:
     """Run all registered filters. Returns (passed, list of failure reasons)."""
     reasons: list[str] = []
     for name, fn in _REGISTRY:

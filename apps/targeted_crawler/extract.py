@@ -1,6 +1,7 @@
 """HTML main text extraction with boilerplate removal."""
 
 from dataclasses import dataclass
+from typing import Any
 
 import trafilatura
 
@@ -26,7 +27,7 @@ def extract_main_text(html_bytes: bytes, url: str = "") -> ExtractedDoc | None:
         log.debug("Failed to decode HTML from %s", url)
         return None
 
-    result = trafilatura.bare_extraction(
+    result: Any = trafilatura.bare_extraction(
         html_str,
         include_comments=False,
         include_tables=True,
@@ -38,7 +39,7 @@ def extract_main_text(html_bytes: bytes, url: str = "") -> ExtractedDoc | None:
     if not result:
         return None
 
-    result_dict = result.as_dict() if hasattr(result, "as_dict") else result
+    result_dict: dict[str, Any] = result.as_dict() if hasattr(result, "as_dict") else result
 
     text = result_dict.get("text", "")
     if not text or not text.strip():

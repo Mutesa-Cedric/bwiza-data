@@ -16,10 +16,11 @@ def _not_found_error():
     )
 
 
-def _s3_cfg(**overrides) -> S3Config:
-    defaults = dict(enabled=True, bucket="test-bucket", max_retries=2, retry_backoff_s=0)
-    defaults.update(overrides)
-    return S3Config(**defaults)
+def _s3_cfg(**overrides: object) -> S3Config:
+    cfg = S3Config(enabled=True, bucket="test-bucket", max_retries=2, retry_backoff_s=0)
+    for k, v in overrides.items():
+        setattr(cfg, k, v)
+    return cfg
 
 
 # --- object_exists ---

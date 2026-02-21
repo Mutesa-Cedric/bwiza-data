@@ -85,6 +85,7 @@ def test_tmp_renamed_to_final(tmp_path):
     writer = ShardWriter(_cfg(tmp_path), "src", "run_rename")
     writer.write({"id": "1", "text": "hello"})
     meta = writer.close()
+    assert meta is not None
 
     # Final path should exist, no .tmp
     from pathlib import Path

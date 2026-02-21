@@ -15,7 +15,7 @@ class _ChunkReader(io.RawIOBase):
     def readable(self) -> bool:
         return True
 
-    def readinto(self, b: bytearray | memoryview) -> int:
+    def readinto(self, b: bytearray | memoryview) -> int:  # type: ignore[override]
         try:
             while len(self._buf) < len(b):
                 self._buf += next(self._iter)

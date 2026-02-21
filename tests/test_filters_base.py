@@ -1,5 +1,7 @@
 """Tests for filter framework."""
 
+from typing import Any
+
 from apps.common.filters.base import (
     FilterResult,
     clear_registry,
@@ -7,9 +9,7 @@ from apps.common.filters.base import (
     run_filters,
 )
 
-
-class _FakeCfg:
-    pass
+_FAKE_CFG: Any = type("_FakeCfg", (), {})()
 
 
 def setup_function():
@@ -17,7 +17,7 @@ def setup_function():
 
 
 def test_no_filters_passes():
-    passed, reasons = run_filters("text", _FakeCfg())
+    passed, reasons = run_filters("text", _FAKE_CFG)
     assert passed is True
     assert reasons == []
 
@@ -27,7 +27,7 @@ def test_passing_filter():
         return FilterResult(passed=True, reason="keep")
 
     register_filter("pass", always_pass)
-    passed, reasons = run_filters("text", _FakeCfg())
+    passed, reasons = run_filters("text", _FAKE_CFG)
     assert passed is True
     assert reasons == []
 
@@ -37,7 +37,7 @@ def test_failing_filter():
         return FilterResult(passed=False, reason="reject.test")
 
     register_filter("fail", always_fail)
-    passed, reasons = run_filters("text", _FakeCfg())
+    passed, reasons = run_filters("text", _FAKE_CFG)
     assert passed is False
     assert "reject.test" in reasons
 
@@ -51,6 +51,6 @@ def test_multiple_filters_collect_reasons():
 
     register_filter("a", fail_a)
     register_filter("b", fail_b)
-    passed, reasons = run_filters("text", _FakeCfg())
+    passed, reasons = run_filters("text", _FAKE_CFG)
     assert passed is False
     assert len(reasons) == 2

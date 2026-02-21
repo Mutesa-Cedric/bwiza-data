@@ -15,16 +15,17 @@ def _cfg(**overrides):
     return InstructionsConfig(**overrides)
 
 
-def _ex(**overrides):
-    defaults = {
-        "id": "test_001",
-        "source": "gold",
-        "task_type": "qa",
-        "prompt": "Kigali ni iki?",
-        "response": "Kigali ni umurwa mukuru w'u Rwanda.",
-    }
-    defaults.update(overrides)
-    return InstructionExample(**defaults)
+def _ex(**overrides: object) -> InstructionExample:
+    ex = InstructionExample(
+        id="test_001",
+        source="gold",
+        task_type="qa",
+        prompt="Kigali ni iki?",
+        response="Kigali ni umurwa mukuru w'u Rwanda.",
+    )
+    for k, v in overrides.items():
+        setattr(ex, k, v)
+    return ex
 
 
 def test_valid_example():

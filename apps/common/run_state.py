@@ -90,7 +90,7 @@ class RunState:
     def from_dict(cls, data: dict) -> "RunState":
         known = {f.name for f in cls.__dataclass_fields__.values()}
         filtered = {k: v for k, v in data.items() if k in known}
-        return cls(**filtered)
+        return cls(**filtered)  # type: ignore[arg-type]
 
     @classmethod
     def from_json(cls, text: str) -> "RunState":
