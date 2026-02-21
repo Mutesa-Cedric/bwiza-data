@@ -1,0 +1,23 @@
+# Rwanda domains for targeted crawling
+# One domain or URL per line. Lines starting with # are ignored.
+
+# News
+umuseke.rw
+igihe.com
+ktpress.rw
+
+# Government
+gov.rw
+
+# Education
+ur.ac.rw
+
+# Wikipedia
+rw.wikipedia.org
+
+# Religious/cultural
+diocesecyangugu.com
+
+# Community
+igire.rw
+umunsi.com

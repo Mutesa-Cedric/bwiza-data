@@ -95,3 +95,37 @@ def test_s3_disabled_no_bucket_ok():
         _write_yaml({"s3": {"enabled": False}}, p)
         cfg = load_config(p)
         assert cfg.s3.enabled is False
+
+
+def test_targeted_defaults_loaded():
+    cfg = load_config("configs/default.yaml")
+    assert cfg.targeted.enabled is False
+    assert cfg.targeted.max_pages == 20000
+    assert cfg.targeted.per_domain_max_pages == 5000
+    assert cfg.targeted.crawl_delay_s == 1.0
+    assert cfg.targeted.output_source == "targeted_web"
+    assert cfg.targeted.allowed_content_types == ["text/html"]
+
+
+def test_targeted_invalid_max_pages():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"targeted": {"max_pages": 0}}, p)
+        with pytest.raises(ValueError, match="targeted.max_pages"):
+            load_config(p)
+
+
+def test_targeted_invalid_crawl_delay():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"targeted": {"crawl_delay_s": -1}}, p)
+        with pytest.raises(ValueError, match="targeted.crawl_delay_s"):
+            load_config(p)
+
+
+def test_targeted_invalid_max_response_bytes():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"targeted": {"max_response_bytes": 0}}, p)
+        with pytest.raises(ValueError, match="targeted.max_response_bytes"):
+            load_config(p)
