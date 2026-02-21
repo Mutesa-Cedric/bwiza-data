@@ -8,6 +8,23 @@ _model = None
 _model_name = "glotlid"
 
 
+def _patch_fasttext_numpy():
+    """Patch fasttext.FastText module to use np.asarray instead of np.array(copy=False)."""
+    import fasttext.FastText as ft_module
+    import numpy as np
+
+    _orig_array = np.array
+
+    def _compat_array(obj, *args, copy=None, **kwargs):
+        if copy is False:
+            return np.asarray(obj, *args, **kwargs)
+        if copy is not None:
+            kwargs["copy"] = copy
+        return _orig_array(obj, *args, **kwargs)
+
+    ft_module.np.array = _compat_array
+
+
 def _load_model():
     global _model
     if _model is not None:
@@ -17,6 +34,7 @@ def _load_model():
         import fasttext
         from huggingface_hub import hf_hub_download
 
+        _patch_fasttext_numpy()
         model_path = hf_hub_download(repo_id="cis-lmu/glotlid", filename="model.bin")
         _model = fasttext.load_model(model_path)
         log.info("GlotLID model loaded from %s", model_path)
