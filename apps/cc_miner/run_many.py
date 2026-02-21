@@ -12,6 +12,8 @@ from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
 from apps.common.logging import get_logger
 from apps.common.manifest import append_manifest_entry
+from apps.common.s3_paths import shard_key
+from apps.common.s3_upload import upload_file, verify_upload
 from apps.common.shard_writer import ShardWriter
 
 log = get_logger(__name__)
@@ -41,8 +43,29 @@ def run_cc_miner(cfg: AppConfig) -> RunStats:
     else:
         writer = LocalWriter(cfg, run_id)
 
+    # Set up S3 client for continuous upload
+    s3_client = None
+    if cfg.s3.enabled and use_sharding:
+        from apps.common.s3_client import get_s3_client
+
+        s3_client = get_s3_client(cfg.s3)
+        log.info("S3 upload enabled: bucket=%s", cfg.s3.bucket)
+
+    def _upload_shard(meta):
+        """Upload a closed shard to S3 immediately."""
+        key = shard_key(cfg.s3.prefix, run_id, meta.filename)
+        try:
+            result = upload_file(s3_client, meta.path, cfg.s3.bucket, key, cfg.s3)
+            if not result.skipped and cfg.s3.verify_after_upload:
+                if not verify_upload(s3_client, meta.path, cfg.s3.bucket, key):
+                    log.error("Verification failed for %s, keeping local copy", key)
+        except Exception:
+            log.exception("S3 upload failed for %s, keeping local copy", meta.filename)
+
     def on_shard_closed(meta):
         append_manifest_entry(run_id, meta, source="commoncrawl")
+        if s3_client is not None:
+            _upload_shard(meta)
 
     try:
         for i, url in enumerate(wet_urls, 1):
@@ -68,7 +91,7 @@ def run_cc_miner(cfg: AppConfig) -> RunStats:
     finally:
         final_meta = writer.close()
         if use_sharding and final_meta is not None:
-            append_manifest_entry(run_id, final_meta, source="commoncrawl")
+            on_shard_closed(final_meta)
         stats.write_json(cfg.output.local_dir, run_id)
 
     log.info(
