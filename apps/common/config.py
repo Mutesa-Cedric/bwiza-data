@@ -13,6 +13,7 @@ from apps.common.config_types import (
     OutputConfig,
     S3Config,
     ShardingConfig,
+    TargetedConfig,
 )
 
 _SECTION_MAP = {
@@ -23,6 +24,7 @@ _SECTION_MAP = {
     "cc": CCConfig,
     "output": OutputConfig,
     "logging": LoggingConfig,
+    "targeted": TargetedConfig,
 }
 
 
@@ -85,3 +87,19 @@ def _validate(cfg: AppConfig) -> None:
 
     if cfg.s3.multipart_chunk_mb <= 0:
         raise ValueError(f"s3.multipart_chunk_mb must be > 0, got {cfg.s3.multipart_chunk_mb}")
+
+    if cfg.targeted.max_pages <= 0:
+        raise ValueError(f"targeted.max_pages must be > 0, got {cfg.targeted.max_pages}")
+
+    if cfg.targeted.per_domain_max_pages <= 0:
+        raise ValueError(
+            f"targeted.per_domain_max_pages must be > 0, got {cfg.targeted.per_domain_max_pages}"
+        )
+
+    if cfg.targeted.crawl_delay_s < 0:
+        raise ValueError(f"targeted.crawl_delay_s must be >= 0, got {cfg.targeted.crawl_delay_s}")
+
+    if cfg.targeted.max_response_bytes <= 0:
+        raise ValueError(
+            f"targeted.max_response_bytes must be > 0, got {cfg.targeted.max_response_bytes}"
+        )
