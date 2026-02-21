@@ -1,28 +1,21 @@
 """Runtime and cost guardrails for pipeline runs."""
 
 import time
-from dataclasses import dataclass
 
+from apps.common.config_types import GuardrailsConfig
 from apps.common.logging import get_logger
 from apps.common.run_state import RunState
 
 log = get_logger(__name__)
 
-
-@dataclass
-class GuardrailConfig:
-    """Stop-condition thresholds. 0 means disabled."""
-
-    max_items: int = 0
-    max_runtime_s: int = 0
-    max_bytes_written: int = 0
-    max_failed_items: int = 0
+# Keep old name as alias for backwards compatibility
+GuardrailConfig = GuardrailsConfig
 
 
 class GuardrailChecker:
     """Check guardrails against current run state."""
 
-    def __init__(self, config: GuardrailConfig) -> None:
+    def __init__(self, config: GuardrailsConfig) -> None:
         self._cfg = config
         self._start_time = time.monotonic()
 

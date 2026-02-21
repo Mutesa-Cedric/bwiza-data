@@ -65,6 +65,22 @@ def test_rotation_on_size(tmp_path):
     assert len(writer.closed_shards) >= 1
 
 
+def test_token_estimate_parallel_docs(tmp_path):
+    writer = ShardWriter(_cfg(tmp_path), "parallel", "run_tok")
+    writer.write({"id": "1", "rw_text": "a" * 200, "en_text": "b" * 200})
+    meta = writer.close()
+    assert meta is not None
+    assert meta.token_estimate == 100  # (200 + 200) / 4
+
+
+def test_token_estimate_instruction_docs(tmp_path):
+    writer = ShardWriter(_cfg(tmp_path), "instructions", "run_tok2")
+    writer.write({"id": "1", "prompt": "a" * 100, "response": "b" * 300})
+    meta = writer.close()
+    assert meta is not None
+    assert meta.token_estimate == 100  # (100 + 300) / 4
+
+
 def test_tmp_renamed_to_final(tmp_path):
     writer = ShardWriter(_cfg(tmp_path), "src", "run_rename")
     writer.write({"id": "1", "text": "hello"})

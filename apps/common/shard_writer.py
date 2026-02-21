@@ -10,7 +10,7 @@ import zstandard as zstd
 from apps.common.checksum import sha256_file
 from apps.common.logging import get_logger
 from apps.common.shard_naming import shard_name
-from apps.common.token_estimate import estimate_tokens
+from apps.common.token_estimate import estimate_tokens_from_doc
 
 log = get_logger(__name__)
 
@@ -67,7 +67,7 @@ class ShardWriter:
         line = orjson.dumps(doc_dict) + b"\n"
         self._writer.write(line)
         self._records_in_current += 1
-        self._tokens_in_current += estimate_tokens(doc_dict.get("text", ""))
+        self._tokens_in_current += estimate_tokens_from_doc(doc_dict)
 
         if self._records_in_current % self._flush_every_n == 0:
             self._writer.flush()

@@ -118,6 +118,14 @@ class InstructionsConfig:
 
 
 @dataclass
+class GuardrailsConfig:
+    max_items: int = 0
+    max_runtime_s: int = 0
+    max_bytes_written: int = 0
+    max_failed_items: int = 0
+
+
+@dataclass
 class AppConfig:
     lid: LidConfig = field(default_factory=LidConfig)
     filters: FiltersConfig = field(default_factory=FiltersConfig)
@@ -129,3 +137,4 @@ class AppConfig:
     targeted: TargetedConfig = field(default_factory=TargetedConfig)
     parallel: ParallelConfig = field(default_factory=ParallelConfig)
     instructions: InstructionsConfig = field(default_factory=InstructionsConfig)
+    guardrails: GuardrailsConfig = field(default_factory=GuardrailsConfig)

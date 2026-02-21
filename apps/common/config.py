@@ -8,6 +8,7 @@ from apps.common.config_types import (
     AppConfig,
     CCConfig,
     FiltersConfig,
+    GuardrailsConfig,
     InstructionsConfig,
     LidConfig,
     LoggingConfig,
@@ -29,6 +30,7 @@ _SECTION_MAP = {
     "targeted": TargetedConfig,
     "parallel": ParallelConfig,
     "instructions": InstructionsConfig,
+    "guardrails": GuardrailsConfig,
 }
 
 
