@@ -33,7 +33,7 @@ Thumbs.db
 *.swo
 
 # Manifests state (local runtime)
-manifests/state/*.lock
+manifests/state/
 
 # Docs (private plans, not for remote)
 docs/
