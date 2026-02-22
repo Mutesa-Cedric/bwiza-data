@@ -15,8 +15,8 @@ from apps.common.logging import get_logger
 
 log = get_logger(__name__)
 
-# MediaWiki XML namespace
-MW_NS = "http://www.mediawiki.org/xml/export-0.10/"
+# MediaWiki XML namespace pattern (version varies across dumps)
+_MW_NS_RE = re.compile(r"\{(http://www\.mediawiki\.org/xml/export-[^}]+)\}")
 
 # Tags to remove (non-content); keep formatting tags like b, i, small, sup, sub
 _REMOVE_TAGS = frozenset(
@@ -97,15 +97,11 @@ def clean_wikitext(raw: str) -> str:
     return text.strip()
 
 
-def _tag(local: str) -> str:
-    """Return namespaced tag for MediaWiki XML."""
-    return f"{{{MW_NS}}}{local}"
-
-
 def parse_dump(dump_path: Path) -> Iterator[WikiArticle]:
     """Stream-parse a Wikipedia XML dump and yield articles.
 
     Handles both .xml.bz2 (compressed) and .xml (uncompressed) files.
+    Auto-detects the MediaWiki XML namespace version from the dump.
     Skips redirects and non-article namespaces (ns != 0).
     """
     if dump_path.suffix == ".bz2" or dump_path.name.endswith(".xml.bz2"):
@@ -116,9 +112,20 @@ def parse_dump(dump_path: Path) -> Iterator[WikiArticle]:
     count = 0
     skipped_redirect = 0
     skipped_ns = 0
+    ns: str | None = None
+
+    def _tag(local: str) -> str:
+        return f"{{{ns}}}{local}" if ns else local
 
     with opener as f:
         for event, elem in ET.iterparse(f, events=("end",)):
+            # Auto-detect namespace from first element we see
+            if ns is None:
+                m = _MW_NS_RE.match(elem.tag)
+                if m:
+                    ns = m.group(1)
+                    log.info("Detected MediaWiki namespace: %s", ns)
+
             if elem.tag != _tag("page"):
                 continue
 
