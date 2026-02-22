@@ -42,7 +42,10 @@ _REMOVE_TAGS = frozenset(
 
 # Pre-strip patterns (applied to raw wikitext before mwparserfromhell)
 _REF_TAG_RE = re.compile(r"<ref[^>]*/?>.*?(?:</ref>)?", re.DOTALL)
-_FILE_RE = re.compile(r"\[\[(?:File|Image|Dosiye|Fichier):[^\]]*\]\]", re.IGNORECASE)
+_FILE_RE = re.compile(
+    r"\[\[(?:File|Image|Dosiye|Fichier):" r"(?:[^\[\]]|\[\[[^\]]*\]\])*\]\]",
+    re.IGNORECASE,
+)
 _TABLE_RE = re.compile(r"^\{\|.*?^\|\}", re.MULTILINE | re.DOTALL)
 
 # Post-strip patterns (applied after strip_code)
@@ -56,6 +59,7 @@ _THUMB_LINE_RE = re.compile(
     re.MULTILINE | re.IGNORECASE,
 )
 _PX_SIZE_RE = re.compile(r"^\d+(?:x\d+)?px(?:\|.*)?$", re.MULTILINE)
+_INLINE_PX_RE = re.compile(r"\|\d+(?:x\d+)?px(?:\]\]|\|)")
 _HTML_ATTR_RE = re.compile(r'(?:class|style|align|width|colspan|rowspan)="[^"]*"')
 _MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
@@ -103,6 +107,7 @@ def clean_wikitext(raw: str) -> str:
     text = _CURLY_RE.sub("", text)
     text = _THUMB_LINE_RE.sub("", text)
     text = _PX_SIZE_RE.sub("", text)
+    text = _INLINE_PX_RE.sub("", text)
     text = _HTML_ATTR_RE.sub("", text)
 
     # Convert headings to plain text
