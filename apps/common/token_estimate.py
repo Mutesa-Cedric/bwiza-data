@@ -3,10 +3,15 @@
 # Text fields to consider for token estimation across all schemas.
 _TEXT_FIELDS = ("text", "rw_text", "en_text", "prompt", "response")
 
+# Calibrated on Qwen2.5-7B tokenizer against Kinyarwanda corpus (Gate G2).
+# Kinyarwanda is agglutinative — BPE over-splits, yielding ~2.55 chars/token
+# vs ~4.0 for English. Previous constant of 4.0 underestimated by ~57%.
+CHARS_PER_TOKEN = 2.55
+
 
 def estimate_tokens(text: str) -> int:
     """Approximate token count from character length."""
-    return int(len(text) / 4)
+    return int(len(text) / CHARS_PER_TOKEN)
 
 
 def estimate_tokens_from_doc(doc: dict) -> int:
@@ -19,4 +24,4 @@ def estimate_tokens_from_doc(doc: dict) -> int:
         for v in doc.values():
             if isinstance(v, str):
                 total_chars += len(v)
-    return int(total_chars / 4)
+    return int(total_chars / CHARS_PER_TOKEN)

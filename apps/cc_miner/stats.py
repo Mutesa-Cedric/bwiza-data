@@ -33,7 +33,9 @@ class RunStats:
 
     @property
     def token_estimate(self) -> int:
-        return int(self.total_kept_chars / 4)
+        from apps.common.token_estimate import CHARS_PER_TOKEN
+
+        return int(self.total_kept_chars / CHARS_PER_TOKEN)
 
     def to_dict(self) -> dict:
         return {

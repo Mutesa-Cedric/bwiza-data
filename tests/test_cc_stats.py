@@ -19,7 +19,7 @@ def test_stats_to_dict():
     assert d["docs_seen"] == 100
     assert d["docs_kept"] == 10
     assert d["keep_ratio"] == 0.1
-    assert d["token_estimate"] == 1000
+    assert d["token_estimate"] == int(4000 / 2.55)
     assert d["reject_reasons"]["reject.lid.not_rw"] == 80
 
 
