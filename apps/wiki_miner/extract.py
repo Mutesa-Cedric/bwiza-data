@@ -89,8 +89,10 @@ _TABLE_ROW_RE = re.compile(r"^\|.*$", re.MULTILINE)
 _DOUBLE_BRACKET_RE = re.compile(r"\[\[|\]\]")
 # Wiki magic words (__TOC__, __FORCETOC__, __NOEDITSECTION__, etc.)
 _MAGIC_WORD_RE = re.compile(r"__[A-Z]+__")
-# Empty parentheses left after template/content stripping
-_EMPTY_PARENS_RE = re.compile(r"\(\s*\)")
+# Empty parentheses/brackets left after template/content stripping
+_EMPTY_PARENS_RE = re.compile(r"\(\s*\)|\[\s*\]")
+# Orphaned </references> that survived tag stripping
+_STRAY_REFERENCES_RE = re.compile(r"</references>", re.IGNORECASE)
 _MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
 
@@ -145,6 +147,7 @@ def clean_wikitext(raw: str) -> str:
     text = _BARE_URL_RE.sub("", text)
     text = _MAGIC_WORD_RE.sub("", text)
     text = _EMPTY_PARENS_RE.sub("", text)
+    text = _STRAY_REFERENCES_RE.sub("", text)
 
     # Decode HTML entities (&amp; &lt; &gt; etc.)
     text = html.unescape(text)
@@ -155,7 +158,9 @@ def clean_wikitext(raw: str) -> str:
     # Convert headings to plain text
     text = _HEADING_RE.sub(r"\1", text)
 
-    # Collapse whitespace
+    # Normalize whitespace: strip each line, collapse blank lines
+    lines = [line.strip() for line in text.splitlines()]
+    text = "\n".join(lines)
     text = _MULTI_NEWLINE_RE.sub("\n\n", text)
     return text.strip()
 

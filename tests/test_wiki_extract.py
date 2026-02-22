@@ -305,10 +305,28 @@ def test_clean_wikitext_strips_empty_parens():
     assert "Joseph Habineza" in result
 
 
+def test_clean_wikitext_strips_empty_brackets():
+    result = clean_wikitext("Some fact [ ] here.")
+    assert "[ ]" not in result
+    assert "[]" not in result
+    assert "Some fact" in result
+
+
 def test_clean_wikitext_strips_soft_hyphens():
     result = clean_wikitext("bu\u00addahitisha amazi")
     assert "\u00ad" not in result
     assert "budahitisha" in result
+
+
+def test_clean_wikitext_strips_leading_trailing_spaces():
+    result = clean_wikitext("  Leading space.\nTrailing space.  \n  Both.  ")
+    for line in result.splitlines():
+        assert line == line.strip()
+
+
+def test_clean_wikitext_strips_stray_references():
+    result = clean_wikitext("Text.\n</references>\nMore.")
+    assert "</references>" not in result
 
 
 def test_clean_wikitext_empty_input():
