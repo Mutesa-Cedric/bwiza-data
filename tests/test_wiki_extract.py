@@ -170,6 +170,50 @@ def test_clean_wikitext_converts_headings():
     assert "Content here." in result
 
 
+def test_clean_wikitext_strips_file_links():
+    raw = "Text before.\n[[File:Rwanda_map.png|thumb|320x320px|Map of Rwanda]]\nText after."
+    result = clean_wikitext(raw)
+    assert "File:" not in result
+    assert "thumb" not in result
+    assert "320x320px" not in result
+    assert "Text before." in result
+    assert "Text after." in result
+
+
+def test_clean_wikitext_strips_image_links():
+    raw = "Intro.\n[[Image:Flag.svg|right|200px|Flag]]\nMore."
+    result = clean_wikitext(raw)
+    assert "Image:" not in result
+    assert "right" not in result.lower().split("intro")[0]
+    assert "200px" not in result
+    assert "Intro." in result
+
+
+def test_clean_wikitext_strips_dosiye_links():
+    raw = "Intro.\n[[Dosiye:Photo.jpg|thumb|Caption]]\nMore."
+    result = clean_wikitext(raw)
+    assert "Dosiye:" not in result
+    assert "thumb" not in result
+
+
+def test_clean_wikitext_strips_tables():
+    raw = 'Before.\n{| class="wikitable"\n|-\n! Header\n|-\n| Cell\n|}\nAfter.'
+    result = clean_wikitext(raw)
+    assert "wikitable" not in result
+    assert "Before." in result
+    assert "After." in result
+
+
+def test_clean_wikitext_strips_thumb_residuals():
+    result = clean_wikitext("thumb|Some caption text")
+    assert "thumb|" not in result
+
+
+def test_clean_wikitext_strips_px_sizes():
+    result = clean_wikitext("320x320px|Flag of Germany")
+    assert "320x320px" not in result
+
+
 def test_clean_wikitext_empty_input():
     assert clean_wikitext("") == ""
 
@@ -191,6 +235,9 @@ def test_clean_wikitext_integration():
     raw = """\
 '''U Rwanda''' ni igihugu kiri mu [[Afurika y'Iburasirazuba]].
 
+[[File:Rwanda_map.png|thumb|320x320px|Ikarita y'u Rwanda]]
+[[Image:Flag_of_Rwanda.svg|right|200px]]
+
 {{Infobox country
 | name = Rwanda
 | capital = [[Kigali]]
@@ -198,6 +245,13 @@ def test_clean_wikitext_integration():
 
 == Amateka ==
 U Rwanda rwagize abami benshi.<ref>Igitabo cy'amateka</ref>
+
+{| class="wikitable"
+|-
+! Umwaka !! Icyabaye
+|-
+| 1962 || Ubwigenge
+|}
 
 Nyuma y'ubwigenge, u Rwanda rwateye imbere mu by'ubukungu.{{citation needed}}
 
@@ -221,3 +275,8 @@ Nyuma y'ubwigenge, u Rwanda rwateye imbere mu by'ubukungu.{{citation needed}}
     assert "<ref>" not in result
     assert "Category:" not in result
     assert "Infobox" not in result
+    assert "thumb" not in result
+    assert "320x320px" not in result
+    assert "File:" not in result
+    assert "Image:" not in result
+    assert "wikitable" not in result

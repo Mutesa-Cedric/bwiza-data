@@ -40,13 +40,24 @@ _REMOVE_TAGS = frozenset(
     }
 )
 
-# Patterns to strip from extracted text (post-strip_code)
+# Pre-strip patterns (applied to raw wikitext before mwparserfromhell)
+_REF_TAG_RE = re.compile(r"<ref[^>]*/?>.*?(?:</ref>)?", re.DOTALL)
+_FILE_RE = re.compile(r"\[\[(?:File|Image|Dosiye|Fichier):[^\]]*\]\]", re.IGNORECASE)
+_TABLE_RE = re.compile(r"^\{\|.*?^\|\}", re.MULTILINE | re.DOTALL)
+
+# Post-strip patterns (applied after strip_code)
 _CATEGORY_RE = re.compile(r"^Category:.*$", re.MULTILINE | re.IGNORECASE)
 _INTERWIKI_RE = re.compile(r"^[a-z]{2,3}:.*$", re.MULTILINE)
-_REF_TAG_RE = re.compile(r"<ref[^>]*/?>.*?(?:</ref>)?", re.DOTALL)
 _CURLY_RE = re.compile(r"\{\{[^}]*\}\}")
-_MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 _HEADING_RE = re.compile(r"^=+\s*(.*?)\s*=+$", re.MULTILINE)
+_THUMB_LINE_RE = re.compile(
+    r"^(?:thumb|right|left|center|upright|frameless|border|baseline"
+    r"|middle|sub|super|text-top|text-bottom)(?:\|.*)?$",
+    re.MULTILINE | re.IGNORECASE,
+)
+_PX_SIZE_RE = re.compile(r"^\d+(?:x\d+)?px(?:\|.*)?$", re.MULTILINE)
+_HTML_ATTR_RE = re.compile(r'(?:class|style|align|width|colspan|rowspan)="[^"]*"')
+_MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
 
 @dataclass
@@ -60,8 +71,10 @@ class WikiArticle:
 
 def clean_wikitext(raw: str) -> str:
     """Remove wikitext markup and return plain text."""
-    # Pre-strip ref tags (mwparserfromhell struggles with nested refs)
+    # Pre-strip: remove constructs that confuse mwparserfromhell
     text = _REF_TAG_RE.sub("", raw)
+    text = _FILE_RE.sub("", text)
+    text = _TABLE_RE.sub("", text)
 
     # Parse with mwparserfromhell
     wikicode = mwparserfromhell.parse(text)
@@ -88,6 +101,9 @@ def clean_wikitext(raw: str) -> str:
     text = _CATEGORY_RE.sub("", text)
     text = _INTERWIKI_RE.sub("", text)
     text = _CURLY_RE.sub("", text)
+    text = _THUMB_LINE_RE.sub("", text)
+    text = _PX_SIZE_RE.sub("", text)
+    text = _HTML_ATTR_RE.sub("", text)
 
     # Convert headings to plain text
     text = _HEADING_RE.sub(r"\1", text)
