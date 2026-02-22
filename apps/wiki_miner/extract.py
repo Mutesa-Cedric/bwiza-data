@@ -93,6 +93,11 @@ _MAGIC_WORD_RE = re.compile(r"__[A-Z]+__")
 _EMPTY_PARENS_RE = re.compile(r"\(\s*\)|\[\s*\]")
 # Orphaned </references> that survived tag stripping
 _STRAY_REFERENCES_RE = re.compile(r"</references>", re.IGNORECASE)
+# Invisible Unicode chars to strip (soft hyphen, zero-width spaces, BOM, LTR/RTL marks)
+_INVISIBLE_CHARS = str.maketrans("", "", "\u00ad\u200b\u200c\u200d\u200e\u200f\ufeff\uf0d8")
+# Stray angle brackets: <<text>> → "text", <text> → text
+_DOUBLE_ANGLE_RE = re.compile(r"<<([^>]+)>>")
+_SINGLE_ANGLE_RE = re.compile(r"<([a-zA-Z][^>]{0,40})>")
 _MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
 
@@ -152,8 +157,12 @@ def clean_wikitext(raw: str) -> str:
     # Decode HTML entities (&amp; &lt; &gt; etc.)
     text = html.unescape(text)
 
-    # Remove soft hyphens and other invisible Unicode control chars
-    text = text.replace("\u00ad", "")
+    # Remove invisible Unicode control chars
+    text = text.translate(_INVISIBLE_CHARS)
+
+    # Normalize stray angle brackets: <<text>> → "text", <text> → text
+    text = _DOUBLE_ANGLE_RE.sub(r'"\1"', text)
+    text = _SINGLE_ANGLE_RE.sub(r"\1", text)
 
     # Convert headings to plain text
     text = _HEADING_RE.sub(r"\1", text)

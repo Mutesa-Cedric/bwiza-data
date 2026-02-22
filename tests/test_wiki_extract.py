@@ -312,10 +312,15 @@ def test_clean_wikitext_strips_empty_brackets():
     assert "Some fact" in result
 
 
-def test_clean_wikitext_strips_soft_hyphens():
+def test_clean_wikitext_strips_invisible_unicode():
     result = clean_wikitext("bu\u00addahitisha amazi")
     assert "\u00ad" not in result
     assert "budahitisha" in result
+    # Zero-width space, BOM, LTR mark
+    result2 = clean_wikitext("hello\u200b \ufeff\u200eworld")
+    assert "\u200b" not in result2
+    assert "\ufeff" not in result2
+    assert "\u200e" not in result2
 
 
 def test_clean_wikitext_strips_leading_trailing_spaces():
