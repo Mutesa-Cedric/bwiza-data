@@ -7,6 +7,7 @@ import yaml
 from apps.common.config_types import (
     AppConfig,
     CCConfig,
+    DedupConfig,
     FiltersConfig,
     GuardrailsConfig,
     InstructionsConfig,
@@ -31,6 +32,7 @@ _SECTION_MAP = {
     "parallel": ParallelConfig,
     "instructions": InstructionsConfig,
     "guardrails": GuardrailsConfig,
+    "dedup": DedupConfig,
 }
 
 

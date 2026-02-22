@@ -118,6 +118,14 @@ class InstructionsConfig:
 
 
 @dataclass
+class DedupConfig:
+    store_path: str = ""
+    fuzzy_threshold: float = 0.8
+    fuzzy_num_perm: int = 128
+    enable_fuzzy: bool = True
+
+
+@dataclass
 class GuardrailsConfig:
     max_items: int = 0
     max_runtime_s: int = 0
@@ -138,3 +146,4 @@ class AppConfig:
     parallel: ParallelConfig = field(default_factory=ParallelConfig)
     instructions: InstructionsConfig = field(default_factory=InstructionsConfig)
     guardrails: GuardrailsConfig = field(default_factory=GuardrailsConfig)
+    dedup: DedupConfig = field(default_factory=DedupConfig)

@@ -89,5 +89,11 @@ instructions:
   allow_english_ratio: 0.05
   target_count: 20000
 
+dedup:
+  store_path: "outputs/dedup_store.db"
+  fuzzy_threshold: 0.8
+  fuzzy_num_perm: 128
+  enable_fuzzy: true
+
 logging:
   level: "INFO"

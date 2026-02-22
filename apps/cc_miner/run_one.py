@@ -1,7 +1,9 @@
 """Run CC miner pipeline over a single WET file."""
 
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from apps.cc_miner.decompress import iter_text_lines
 from apps.cc_miner.http_stream import stream_download
@@ -9,10 +11,13 @@ from apps.cc_miner.keep import decide_keep
 from apps.cc_miner.stats import RunStats
 from apps.cc_miner.wet_parser import parse_wet
 from apps.common.config_types import AppConfig
-from apps.common.dedup_exact import ExactDedupStore
 from apps.common.hashing import hash_text
 from apps.common.logging import get_logger
 from apps.common.schema import Document
+
+if TYPE_CHECKING:
+    from apps.common.dedup_exact import ExactDedupStore
+    from apps.common.dedup_store import DedupStore
 
 log = get_logger(__name__)
 
@@ -27,7 +32,7 @@ def run_one_wet(
     wet_url: str,
     cfg: AppConfig,
     writer: DocWriter,
-    dedup: ExactDedupStore,
+    dedup: DedupStore | ExactDedupStore,
     stats: RunStats,
     on_shard_closed=None,
 ) -> None:
@@ -47,9 +52,12 @@ def run_one_wet(
             continue
 
         text_hash = hash_text(decision.normalized_text)
-        if dedup.check_and_add(text_hash):
+        is_dup, reason = dedup.is_duplicate(
+            text_hash, decision.normalized_text, text_hash, "commoncrawl", ""
+        )
+        if is_dup:
             stats.duplicates += 1
-            stats.reject_reasons["reject.dedup.exact"] += 1
+            stats.reject_reasons[reason] += 1
             continue
 
         doc = Document(
