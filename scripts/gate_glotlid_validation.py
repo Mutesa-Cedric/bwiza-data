@@ -21,7 +21,8 @@ from pathlib import Path
 import orjson
 import zstandard as zstd
 
-from apps.common.lid import _load_model, _model
+import apps.common.lid as lid_module
+from apps.common.lid import _load_model
 from apps.common.logging import get_logger, setup_logging
 from apps.common.normalize import normalize_text
 
@@ -34,9 +35,10 @@ OUT_DIR = Path("outputs/gate_checks/glotlid_labels")
 def _predict_top2(text: str) -> list[tuple[str, float]]:
     """Run GlotLID with k=2, return [(lang, score), (lang, score)]."""
     _load_model()
-    assert _model is not None
+    model = lid_module._model
+    assert model is not None
     clean = text.replace("\n", " ")[:5000]
-    predictions = _model.predict(clean, k=2)
+    predictions = model.predict(clean, k=2)
     results = []
     for i in range(min(2, len(predictions[0]))):
         label = predictions[0][i].replace("__label__", "")  # type: ignore[union-attr]
