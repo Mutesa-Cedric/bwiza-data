@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import bz2
+import html
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -41,7 +42,13 @@ _REMOVE_TAGS = frozenset(
 )
 
 # Pre-strip patterns (applied to raw wikitext before mwparserfromhell)
-_REF_TAG_RE = re.compile(r"<ref[^>]*/?>.*?(?:</ref>)?", re.DOTALL)
+# Ref tags: self-closing, content-bearing, unclosed (to EOL), orphaned </ref>
+_REF_TAG_RE = re.compile(
+    r"<ref[^>]*/>|<ref[^>]*>.*?</ref>|<ref[^>]*>[^\n]*"
+    r"|</ref>"
+    r"|<references[^>]*/>|<references[^>]*>.*?</references>",
+    re.DOTALL | re.IGNORECASE,
+)
 _FILE_RE = re.compile(
     r"\[\[(?:File|Image|Dosiye|Fichier):"
     r"(?:[^\[\]]|\[\[[^\]]*\]\])*"
@@ -49,11 +56,19 @@ _FILE_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 _TABLE_RE = re.compile(r"^\{\|.*?^\|\}", re.MULTILINE | re.DOTALL)
+# Bare URLs (standalone or glued to preceding text after ref stripping)
+_BARE_URL_RE = re.compile(r"https?://\S+")
+# HTML tags that mwparserfromhell may leave behind
+_HTML_TAG_RE = re.compile(
+    r"</?(?:div|span|br|center|blockquote|poem|nowiki|gallery"
+    r"|score|table|td|tr|th)\b[^>]*>",
+    re.IGNORECASE,
+)
 
 # Post-strip patterns (applied after strip_code)
 _CATEGORY_RE = re.compile(r"^Category:.*$", re.MULTILINE | re.IGNORECASE)
 _INTERWIKI_RE = re.compile(r"^[a-z]{2,3}:.*$", re.MULTILINE)
-_CURLY_RE = re.compile(r"\{\{[^}]*\}\}")
+_CURLY_RE = re.compile(r"\{\{[^}]*\}{1,2}")
 _HEADING_RE = re.compile(r"^=+\s*(.*?)\s*=+$", re.MULTILINE)
 _THUMB_LINE_RE = re.compile(
     r"^(?:thumb|right|left|center|upright|frameless|border|baseline"
@@ -62,7 +77,14 @@ _THUMB_LINE_RE = re.compile(
 )
 _PX_SIZE_RE = re.compile(r"^\d+(?:x\d+)?px(?:\|.*)?$", re.MULTILINE)
 _INLINE_PX_RE = re.compile(r"\|\d+(?:x\d+)?px(?:\]\]|\|)")
-_HTML_ATTR_RE = re.compile(r'(?:class|style|align|width|colspan|rowspan)="[^"]*"')
+_HTML_ATTR_RE = re.compile(
+    r'(?:class|style|align|width|colspan|rowspan)="[^"]*"'
+    r"|(?:align|colspan|rowspan)=\w+"
+)
+# Residual wiki table markup lines
+_TABLE_ROW_RE = re.compile(r"^\|[\-}].*$", re.MULTILINE)
+# Residual [[ ]] brackets
+_DOUBLE_BRACKET_RE = re.compile(r"\[\[|\]\]")
 _MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
 
@@ -111,6 +133,13 @@ def clean_wikitext(raw: str) -> str:
     text = _PX_SIZE_RE.sub("", text)
     text = _INLINE_PX_RE.sub("", text)
     text = _HTML_ATTR_RE.sub("", text)
+    text = _TABLE_ROW_RE.sub("", text)
+    text = _HTML_TAG_RE.sub("", text)
+    text = _DOUBLE_BRACKET_RE.sub("", text)
+    text = _BARE_URL_RE.sub("", text)
+
+    # Decode HTML entities (&amp; &lt; &gt; etc.)
+    text = html.unescape(text)
 
     # Convert headings to plain text
     text = _HEADING_RE.sub(r"\1", text)

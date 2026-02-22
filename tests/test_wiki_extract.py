@@ -152,8 +152,38 @@ def test_clean_wikitext_strips_interwiki():
 def test_clean_wikitext_strips_ref_tags():
     result = clean_wikitext("Fact.<ref>Source here</ref> More text.")
     assert "<ref>" not in result
+    assert "</ref>" not in result
+    assert "Source here" not in result
     assert "Fact." in result
     assert "More text." in result
+
+
+def test_clean_wikitext_strips_ref_with_url():
+    result = clean_wikitext("Fact.<ref>https://example.com/page</ref> More.")
+    assert "</ref>" not in result
+    assert "https://" not in result
+    assert "Fact." in result
+    assert "More." in result
+
+
+def test_clean_wikitext_strips_self_closing_ref():
+    result = clean_wikitext('Fact.<ref name="abc" /> More.')
+    assert "<ref" not in result
+    assert "Fact." in result
+
+
+def test_clean_wikitext_strips_multiple_refs():
+    raw = "A.<ref>src1</ref> B.<ref>src2</ref> C."
+    result = clean_wikitext(raw)
+    assert "</ref>" not in result
+    assert "A." in result
+    assert "B." in result
+    assert "C." in result
+
+
+def test_clean_wikitext_strips_references_tag():
+    result = clean_wikitext("Text.\n<references />\nMore.")
+    assert "<references" not in result
 
 
 def test_clean_wikitext_strips_infobox():
@@ -212,6 +242,42 @@ def test_clean_wikitext_strips_thumb_residuals():
 def test_clean_wikitext_strips_px_sizes():
     result = clean_wikitext("320x320px|Flag of Germany")
     assert "320x320px" not in result
+
+
+def test_clean_wikitext_strips_bare_urls():
+    result = clean_wikitext("Text before. https://example.com/page Text after.")
+    assert "https://" not in result
+    assert "Text before." in result
+    assert "Text after." in result
+
+
+def test_clean_wikitext_strips_html_tags():
+    result = clean_wikitext("Before.<div>content</div>After.")
+    assert "<div>" not in result
+    assert "</div>" not in result
+
+
+def test_clean_wikitext_strips_br_tags():
+    result = clean_wikitext("Line one.<br>Line two.<br/>More.")
+    assert "<br" not in result
+
+
+def test_clean_wikitext_decodes_html_entities():
+    result = clean_wikitext("Babcock &amp; Wilcox")
+    assert "&amp;" not in result
+    assert "Babcock & Wilcox" in result
+
+
+def test_clean_wikitext_strips_table_row_remnants():
+    result = clean_wikitext("Before.\n|-\n| cell content\n|}\nAfter.")
+    assert "|-" not in result
+    assert "|}" not in result
+
+
+def test_clean_wikitext_strips_unquoted_html_attrs():
+    result = clean_wikitext("align=center colspan=2 text")
+    assert "align=center" not in result
+    assert "colspan=2" not in result
 
 
 def test_clean_wikitext_empty_input():
@@ -273,6 +339,7 @@ Nyuma y'ubwigenge, u Rwanda rwateye imbere mu by'ubukungu.{{citation needed}}
     assert "{{" not in result
     assert "}}" not in result
     assert "<ref>" not in result
+    assert "</ref>" not in result
     assert "Category:" not in result
     assert "Infobox" not in result
     assert "thumb" not in result
@@ -280,3 +347,5 @@ Nyuma y'ubwigenge, u Rwanda rwateye imbere mu by'ubukungu.{{citation needed}}
     assert "File:" not in result
     assert "Image:" not in result
     assert "wikitable" not in result
+    assert "|-" not in result
+    assert "|}" not in result
