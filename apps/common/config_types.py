@@ -118,6 +118,17 @@ class InstructionsConfig:
 
 
 @dataclass
+class WikiConfig:
+    enabled: bool = False
+    dump_url: str = (
+        "https://dumps.wikimedia.org/rwwiki/latest/rwwiki-latest-pages-articles.xml.bz2"
+    )
+    output_dir: str = "outputs/wiki"
+    output_source: str = "wikipedia"
+    max_articles: int = 0
+
+
+@dataclass
 class DedupConfig:
     store_path: str = ""
     fuzzy_threshold: float = 0.8
@@ -147,3 +158,4 @@ class AppConfig:
     instructions: InstructionsConfig = field(default_factory=InstructionsConfig)
     guardrails: GuardrailsConfig = field(default_factory=GuardrailsConfig)
     dedup: DedupConfig = field(default_factory=DedupConfig)
+    wiki: WikiConfig = field(default_factory=WikiConfig)

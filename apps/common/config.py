@@ -18,6 +18,7 @@ from apps.common.config_types import (
     S3Config,
     ShardingConfig,
     TargetedConfig,
+    WikiConfig,
 )
 
 _SECTION_MAP = {
@@ -33,6 +34,7 @@ _SECTION_MAP = {
     "instructions": InstructionsConfig,
     "guardrails": GuardrailsConfig,
     "dedup": DedupConfig,
+    "wiki": WikiConfig,
 }
 
 

@@ -12,6 +12,7 @@ log = get_logger(__name__)
 SOURCE_TO_DATASET: dict[str, str] = {
     "commoncrawl": "pretrain",
     "targeted_web": "pretrain",
+    "wikipedia": "pretrain",
     "parallel_web": "parallel",
     "instructions_rw": "instructions",
 }

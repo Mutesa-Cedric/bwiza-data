@@ -89,6 +89,13 @@ instructions:
   allow_english_ratio: 0.05
   target_count: 20000
 
+wiki:
+  enabled: false
+  dump_url: "https://dumps.wikimedia.org/rwwiki/latest/rwwiki-latest-pages-articles.xml.bz2"
+  output_dir: "outputs/wiki"
+  output_source: "wikipedia"
+  max_articles: 0
+
 dedup:
   store_path: "outputs/dedup_store.db"
   fuzzy_threshold: 0.8
