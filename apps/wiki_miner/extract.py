@@ -90,11 +90,13 @@ _DOUBLE_BRACKET_RE = re.compile(r"\[\[|\]\]")
 # Wiki magic words (__TOC__, __FORCETOC__, __NOEDITSECTION__, etc.)
 _MAGIC_WORD_RE = re.compile(r"__[A-Z]+__")
 # Empty parentheses/brackets left after template/content stripping
-_EMPTY_PARENS_RE = re.compile(r"\(\s*\)|\[\s*\]")
+_EMPTY_PARENS_RE = re.compile(r"\(\s*\)|\]\s*\[\s*\]|\[\s*\]")
 # Orphaned </references> that survived tag stripping
 _STRAY_REFERENCES_RE = re.compile(r"</references>", re.IGNORECASE)
 # Invisible Unicode chars to strip (soft hyphen, zero-width spaces, BOM, LTR/RTL marks)
 _INVISIBLE_CHARS = str.maketrans("", "", "\u00ad\u200b\u200c\u200d\u200e\u200f\ufeff\uf0d8")
+# Residual LaTeX math (lines with {\ sequences from stripped <math> tags)
+_LATEX_LINE_RE = re.compile(r"^.*\{\\\s\w.*$", re.MULTILINE)
 # Stray angle brackets: <<text>> → "text", <text> → text
 _DOUBLE_ANGLE_RE = re.compile(r"<<([^>]+)>>")
 _SINGLE_ANGLE_RE = re.compile(r"<([a-zA-Z][^>]{0,40})>")
@@ -153,6 +155,7 @@ def clean_wikitext(raw: str) -> str:
     text = _MAGIC_WORD_RE.sub("", text)
     text = _EMPTY_PARENS_RE.sub("", text)
     text = _STRAY_REFERENCES_RE.sub("", text)
+    text = _LATEX_LINE_RE.sub("", text)
 
     # Decode HTML entities (&amp; &lt; &gt; etc.)
     text = html.unescape(text)
