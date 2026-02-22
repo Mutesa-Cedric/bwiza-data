@@ -44,7 +44,7 @@ _REMOVE_TAGS = frozenset(
 _REF_TAG_RE = re.compile(r"<ref[^>]*/?>.*?(?:</ref>)?", re.DOTALL)
 _FILE_RE = re.compile(
     r"\[\[(?:File|Image|Dosiye|Fichier):" r"(?:[^\[\]]|\[\[[^\]]*\]\])*\]\]",
-    re.IGNORECASE,
+    re.IGNORECASE | re.DOTALL,
 )
 _TABLE_RE = re.compile(r"^\{\|.*?^\|\}", re.MULTILINE | re.DOTALL)
 
