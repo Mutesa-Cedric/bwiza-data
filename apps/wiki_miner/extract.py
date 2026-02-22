@@ -43,7 +43,9 @@ _REMOVE_TAGS = frozenset(
 # Pre-strip patterns (applied to raw wikitext before mwparserfromhell)
 _REF_TAG_RE = re.compile(r"<ref[^>]*/?>.*?(?:</ref>)?", re.DOTALL)
 _FILE_RE = re.compile(
-    r"\[\[(?:File|Image|Dosiye|Fichier):" r"(?:[^\[\]]|\[\[[^\]]*\]\])*\]\]",
+    r"\[\[(?:File|Image|Dosiye|Fichier):"
+    r"(?:[^\[\]]|\[\[[^\]]*\]\])*"
+    r"(?:\]\]|$)",  # allow EOF for unclosed file links
     re.IGNORECASE | re.DOTALL,
 )
 _TABLE_RE = re.compile(r"^\{\|.*?^\|\}", re.MULTILINE | re.DOTALL)
