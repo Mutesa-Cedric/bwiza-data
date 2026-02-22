@@ -70,7 +70,7 @@ def test_token_estimate_parallel_docs(tmp_path):
     writer.write({"id": "1", "rw_text": "a" * 200, "en_text": "b" * 200})
     meta = writer.close()
     assert meta is not None
-    assert meta.token_estimate == 100  # (200 + 200) / 4
+    assert meta.token_estimate == int(400 / 2.55)  # (200 + 200) / CHARS_PER_TOKEN
 
 
 def test_token_estimate_instruction_docs(tmp_path):
@@ -78,7 +78,7 @@ def test_token_estimate_instruction_docs(tmp_path):
     writer.write({"id": "1", "prompt": "a" * 100, "response": "b" * 300})
     meta = writer.close()
     assert meta is not None
-    assert meta.token_estimate == 100  # (100 + 300) / 4
+    assert meta.token_estimate == int(400 / 2.55)  # (100 + 300) / CHARS_PER_TOKEN
 
 
 def test_tmp_renamed_to_final(tmp_path):
