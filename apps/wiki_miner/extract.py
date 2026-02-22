@@ -66,7 +66,9 @@ _HTML_TAG_RE = re.compile(
 )
 
 # Post-strip patterns (applied after strip_code)
-_CATEGORY_RE = re.compile(r"^Category:.*$", re.MULTILINE | re.IGNORECASE)
+# Category lines: English, Kinyarwanda (Ikiciro), French (Catégorie)
+# Matches both start-of-line and mid-line occurrences
+_CATEGORY_RE = re.compile(r"(?:Category|Ikiciro|Catégorie):[^\n]*", re.IGNORECASE)
 _INTERWIKI_RE = re.compile(r"^[a-z]{2,3}:.*$", re.MULTILINE)
 _CURLY_RE = re.compile(r"\{\{[^}]*\}{1,2}")
 _HEADING_RE = re.compile(r"^=+\s*(.*?)\s*=+$", re.MULTILINE)
@@ -76,15 +78,19 @@ _THUMB_LINE_RE = re.compile(
     re.MULTILINE | re.IGNORECASE,
 )
 _PX_SIZE_RE = re.compile(r"^\d+(?:x\d+)?px(?:\|.*)?$", re.MULTILINE)
-_INLINE_PX_RE = re.compile(r"\|\d+(?:x\d+)?px(?:\]\]|\|)")
+_INLINE_PX_RE = re.compile(r"(?:\|)?\d+(?:x\d+)?px(?:\]\]|\||$)")
 _HTML_ATTR_RE = re.compile(
     r'(?:class|style|align|width|colspan|rowspan)="[^"]*"'
     r"|(?:align|colspan|rowspan)=\w+"
 )
-# Residual wiki table markup lines
-_TABLE_ROW_RE = re.compile(r"^\|[\-}].*$", re.MULTILINE)
+# Residual wiki table markup lines (|-, |}, |cell, | cell)
+_TABLE_ROW_RE = re.compile(r"^\|.*$", re.MULTILINE)
 # Residual [[ ]] brackets
 _DOUBLE_BRACKET_RE = re.compile(r"\[\[|\]\]")
+# Wiki magic words (__TOC__, __FORCETOC__, __NOEDITSECTION__, etc.)
+_MAGIC_WORD_RE = re.compile(r"__[A-Z]+__")
+# Empty parentheses left after template/content stripping
+_EMPTY_PARENS_RE = re.compile(r"\(\s*\)")
 _MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
 
@@ -137,9 +143,14 @@ def clean_wikitext(raw: str) -> str:
     text = _HTML_TAG_RE.sub("", text)
     text = _DOUBLE_BRACKET_RE.sub("", text)
     text = _BARE_URL_RE.sub("", text)
+    text = _MAGIC_WORD_RE.sub("", text)
+    text = _EMPTY_PARENS_RE.sub("", text)
 
     # Decode HTML entities (&amp; &lt; &gt; etc.)
     text = html.unescape(text)
+
+    # Remove soft hyphens and other invisible Unicode control chars
+    text = text.replace("\u00ad", "")
 
     # Convert headings to plain text
     text = _HEADING_RE.sub(r"\1", text)

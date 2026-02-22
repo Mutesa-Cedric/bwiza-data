@@ -280,6 +280,37 @@ def test_clean_wikitext_strips_unquoted_html_attrs():
     assert "colspan=2" not in result
 
 
+def test_clean_wikitext_strips_kinyarwanda_categories():
+    result = clean_wikitext("Some text.\nIkiciro:Ibihugu by'Afurika\nIkiciro:Rwanda")
+    assert "Ikiciro:" not in result
+    assert "Some text." in result
+
+
+def test_clean_wikitext_strips_french_categories():
+    result = clean_wikitext("Du texte.\nCatégorie:Pays d'Afrique")
+    assert "Catégorie:" not in result
+
+
+def test_clean_wikitext_strips_magic_words():
+    result = clean_wikitext("Content.\n__FORCETOC__\n__NOEDITSECTION__\nMore.")
+    assert "__FORCETOC__" not in result
+    assert "__NOEDITSECTION__" not in result
+    assert "Content." in result
+
+
+def test_clean_wikitext_strips_empty_parens():
+    result = clean_wikitext("Joseph Habineza () was a politician.")
+    assert "( )" not in result
+    assert "()" not in result
+    assert "Joseph Habineza" in result
+
+
+def test_clean_wikitext_strips_soft_hyphens():
+    result = clean_wikitext("bu\u00addahitisha amazi")
+    assert "\u00ad" not in result
+    assert "budahitisha" in result
+
+
 def test_clean_wikitext_empty_input():
     assert clean_wikitext("") == ""
 
@@ -322,8 +353,10 @@ U Rwanda rwagize abami benshi.<ref>Igitabo cy'amateka</ref>
 Nyuma y'ubwigenge, u Rwanda rwateye imbere mu by'ubukungu.{{citation needed}}
 
 [[Category:Ibihugu by'Afurika]]
+[[Ikiciro:Ibihugu]]
 [[en:Rwanda]]
-[[fr:Rwanda]]"""
+[[fr:Rwanda]]
+__FORCETOC__"""
 
     result = clean_wikitext(raw)
 
@@ -349,3 +382,5 @@ Nyuma y'ubwigenge, u Rwanda rwateye imbere mu by'ubukungu.{{citation needed}}
     assert "wikitable" not in result
     assert "|-" not in result
     assert "|}" not in result
+    assert "Ikiciro:" not in result
+    assert "__FORCETOC__" not in result
