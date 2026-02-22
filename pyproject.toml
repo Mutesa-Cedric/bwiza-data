@@ -12,6 +12,7 @@ dependencies = [
     "fasttext-wheel>=0.9",
     "huggingface_hub>=0.20",
     "trafilatura>=1.6",
+    "datasketch>=1.6",
 ]
 
 [project.optional-dependencies]

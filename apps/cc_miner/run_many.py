@@ -8,7 +8,7 @@ from apps.cc_miner.wet_paths import get_wet_urls
 from apps.cc_miner.writer import LocalWriter
 from apps.common.config_fingerprint import fingerprint_config
 from apps.common.config_types import AppConfig
-from apps.common.dedup_exact import ExactDedupStore
+from apps.common.dedup_factory import create_dedup
 from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
 from apps.common.guardrails import GuardrailChecker
@@ -70,7 +70,7 @@ def run_cc_miner(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
     log.info("CC miner run=%s with %d WET files", run_id, len(wet_urls))
 
     guardrails = GuardrailChecker(cfg.guardrails)
-    dedup = ExactDedupStore()
+    dedup = create_dedup(cfg.dedup)
     stats = RunStats()
 
     # Use ShardWriter when sharding is enabled, else fallback to LocalWriter
@@ -169,6 +169,7 @@ def run_cc_miner(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         final_meta = writer.close()
         if use_sharding and final_meta is not None:
             on_shard_closed(final_meta)
+        dedup.close()
         state.current_item = ""
         save_state(state)
         _sync_state_to_s3()

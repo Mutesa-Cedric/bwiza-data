@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from apps.cc_miner.stats import RunStats
 from apps.common.config_fingerprint import fingerprint_config
 from apps.common.config_types import AppConfig
-from apps.common.dedup_exact import ExactDedupStore
+from apps.common.dedup_factory import create_dedup
 from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
 from apps.common.guardrails import GuardrailChecker
@@ -94,7 +94,7 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
     guardrails = GuardrailChecker(cfg.guardrails)
     robots = RobotsChecker(user_agent=tcfg.user_agent, enabled=tcfg.obey_robots_txt)
     rate_limiter = DomainRateLimiter(delay_s=tcfg.crawl_delay_s)
-    dedup = ExactDedupStore()
+    dedup = create_dedup(cfg.dedup)
     stats = RunStats()
 
     # Shard writer
@@ -245,6 +245,7 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         final_meta = writer.close()
         if final_meta is not None:
             on_shard_closed(final_meta)
+        dedup.close()
         state.current_item = ""
         save_state(state)
         _sync_state_to_s3()

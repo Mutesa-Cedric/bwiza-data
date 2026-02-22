@@ -1,20 +1,26 @@
 """Targeted crawler pipeline: extract -> keep decision -> dedup -> Document."""
 
+from __future__ import annotations
+
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from apps.cc_miner.keep import KeepDecision, decide_keep
 from apps.common.config_types import AppConfig
-from apps.common.dedup_exact import ExactDedupStore
 from apps.common.hashing import hash_text
 from apps.common.schema import Document
 from apps.targeted_crawler.extract import ExtractedDoc
+
+if TYPE_CHECKING:
+    from apps.common.dedup_exact import ExactDedupStore
+    from apps.common.dedup_store import DedupStore
 
 
 def process_page(
     extracted: ExtractedDoc,
     url: str,
     cfg: AppConfig,
-    dedup: ExactDedupStore,
+    dedup: DedupStore | ExactDedupStore,
 ) -> tuple[Document | None, KeepDecision]:
     """Run the keep decision pipeline on extracted text.
 
@@ -27,10 +33,17 @@ def process_page(
         return None, decision
 
     text_hash = hash_text(decision.normalized_text)
-    if dedup.check_and_add(text_hash):
+    is_dup, reason = dedup.is_duplicate(
+        text_hash,
+        decision.normalized_text,
+        text_hash,
+        cfg.targeted.output_source,
+        "",
+    )
+    if is_dup:
         return None, KeepDecision(
             keep=False,
-            reason="reject.dedup.exact",
+            reason=reason,
             lang=decision.lang,
             lid_score=decision.lid_score,
         )
