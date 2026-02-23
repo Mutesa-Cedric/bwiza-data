@@ -176,7 +176,7 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         while not guardrail_hit:
             # 1. Collect a batch of URLs to fetch in parallel
             batch: list[str] = []
-            for _ in range(pool.max_workers):
+            while len(batch) < pool.max_workers:
                 url = frontier.next_url()
                 if url is None:
                     break
