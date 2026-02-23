@@ -388,6 +388,23 @@ def test_clean_wikitext_truncates_with_colon_suffix():
     assert "Amashakiro" not in result
 
 
+def test_clean_wikitext_truncates_bare_heading():
+    """Bare Amashakiro without == markers (common in rw.wiki)."""
+    raw = "Article body.\n\nAmashakiro\nRef 1.\nRef 2."
+    result = clean_wikitext(raw)
+    assert "Article body." in result
+    assert "Amashakiro" not in result
+    assert "Ref 1." not in result
+
+
+def test_clean_wikitext_truncates_bold_heading():
+    """Bold-wrapped heading like '''AMASHAKIRO'''."""
+    raw = "Content.\n\n'''AMASHAKIRO'''\nSome ref."
+    result = clean_wikitext(raw)
+    assert "Content." in result
+    assert "AMASHAKIRO" not in result
+
+
 def test_clean_wikitext_empty_input():
     assert clean_wikitext("") == ""
 

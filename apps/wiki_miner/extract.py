@@ -213,7 +213,16 @@ def clean_wikitext(raw: str) -> str:
 
     # Normalize whitespace: strip each line, collapse blank lines
     lines = [line.strip() for line in text.splitlines()]
-    text = "\n".join(lines)
+
+    # Second-pass tail truncation: catch bare headings without == markers
+    # (e.g. bold-wrapped '''Amashakiro''' that mwparserfromhell stripped to plain text)
+    kept: list[str] = []
+    for line in lines:
+        if line.rstrip(":").lower() in _TAIL_SECTIONS:
+            break
+        kept.append(line)
+
+    text = "\n".join(kept)
     text = _MULTI_NEWLINE_RE.sub("\n\n", text)
     return text.strip()
 
