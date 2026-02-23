@@ -219,6 +219,13 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                     mark_done(run_id, url)
                     continue
 
+                # Discover links from every fetched page (even if content
+                # fails LID/quality filters — an English homepage may link
+                # to Kinyarwanda articles).
+                raw_links = extract_links(result.content, result.final_url or url)
+                safe_links = [lnk for lnk in raw_links if is_safe_url(lnk, allowed_domains)[0]]
+                frontier.add_links(safe_links)
+
                 # Extract main text
                 extracted = extract_main_text(result.content, url=result.final_url or url)
                 if extracted is None:
@@ -244,11 +251,6 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
 
                 if shard_result is not None:
                     on_shard_closed(shard_result)
-
-                # Discover links from this page (pre-filter unsafe URLs)
-                raw_links = extract_links(result.content, result.final_url or url)
-                safe_links = [lnk for lnk in raw_links if is_safe_url(lnk, allowed_domains)[0]]
-                frontier.add_links(safe_links)
 
                 # Check guardrails
                 triggered, reason = guardrails.check(state)
