@@ -1,9 +1,10 @@
-"""End-to-end targeted crawler runner (resumable)."""
+"""End-to-end targeted crawler runner (resumable, concurrent)."""
 
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 from apps.cc_miner.stats import RunStats
+from apps.common.concurrency import BoundedWorkerPool
 from apps.common.config_fingerprint import fingerprint_config
 from apps.common.config_types import AppConfig
 from apps.common.dedup_factory import create_dedup
@@ -19,7 +20,7 @@ from apps.common.s3_paths import shard_key
 from apps.common.s3_upload import upload_file, verify_upload
 from apps.common.shard_writer import ShardWriter
 from apps.targeted_crawler.extract import extract_main_text
-from apps.targeted_crawler.fetch import fetch_url
+from apps.targeted_crawler.fetch import FetchResult, fetch_url
 from apps.targeted_crawler.frontier import CrawlFrontier
 from apps.targeted_crawler.links import extract_links
 from apps.targeted_crawler.pipeline import process_page
@@ -36,10 +37,27 @@ from apps.targeted_crawler.seeds import (
 log = get_logger(__name__)
 
 
+def _domain_from_url(url: str) -> str | None:
+    parsed = urlparse(url)
+    if not parsed.hostname:
+        return None
+    return canonical_domain(parsed.hostname)
+
+
+def _fetch_one(url: str, tcfg, rate_limiter: DomainRateLimiter) -> tuple[str, FetchResult]:
+    """Fetch a single URL with rate limiting. Runs in a worker thread."""
+    domain = _domain_from_url(url)
+    if domain:
+        rate_limiter.wait_if_needed(domain)
+    result = fetch_url(url, tcfg)
+    return url, result
+
+
 def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
     """Run the targeted crawler end-to-end.
 
     If resume_run_id is provided, resumes that run (skipping done URLs).
+    Uses BoundedWorkerPool for concurrent fetching with sequential processing.
     """
     clear_registry()
     register_quality_filters()
@@ -82,7 +100,12 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
     state.start()
     save_state(state)
 
-    log.info("Targeted crawl run=%s with %d seed domains", run_id, len(seeds))
+    log.info(
+        "Targeted crawl run=%s with %d seed domains, concurrency=%d",
+        run_id,
+        len(seeds),
+        tcfg.concurrency,
+    )
 
     # Set up components
     frontier = CrawlFrontier(
@@ -146,91 +169,97 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
             state.uploaded_shards += 1
             _sync_state_to_s3()
 
+    pool = BoundedWorkerPool(max_workers=tcfg.concurrency, name="crawler")
+    guardrail_hit = False
+
     try:
-        while True:
-            url = frontier.next_url()
-            if url is None:
+        while not guardrail_hit:
+            # 1. Collect a batch of URLs to fetch in parallel
+            batch: list[str] = []
+            for _ in range(pool.max_workers):
+                url = frontier.next_url()
+                if url is None:
+                    break
+                if url in done_set:
+                    state.items_skipped += 1
+                    continue
+                if not robots.is_allowed(url):
+                    log.debug("Blocked by robots.txt: %s", url)
+                    stats.docs_seen += 1
+                    stats.reject_reasons["reject.robots_blocked"] += 1
+                    continue
+                batch.append(url)
+
+            if not batch:
                 break
 
-            # Skip if already done (resume)
-            if url in done_set:
-                state.items_skipped += 1
-                continue
+            # 2. Submit fetch tasks in parallel (I/O-bound)
+            for url in batch:
+                pool.submit(_fetch_one, url, tcfg, rate_limiter)
+            fetch_results = pool.drain()
 
-            state.current_item = url
-
-            # Robots check
-            if not robots.is_allowed(url):
-                log.debug("Blocked by robots.txt: %s", url)
+            # 3. Process results sequentially (fast, no locking needed)
+            for url, result in fetch_results:
+                frontier.mark_fetched(url)
                 stats.docs_seen += 1
-                stats.reject_reasons["reject.robots_blocked"] += 1
-                continue
+                state.items_done += 1
+                state.current_item = url
 
-            # Rate limit
-            domain = _domain_from_url(url)
-            if domain:
-                rate_limiter.wait_if_needed(domain)
+                if not result.ok:
+                    stats.reject_reasons[f"reject.fetch.{result.error}"] += 1
+                    mark_done(run_id, url)
+                    continue
 
-            # Fetch
-            result = fetch_url(url, tcfg)
-            frontier.mark_fetched(url)
-            stats.docs_seen += 1
-            state.items_done += 1
+                # Safety: check redirect stays in allowlist
+                redirect_ok, redirect_reason = check_redirect_safety(
+                    url, result.final_url, allowed_domains
+                )
+                if not redirect_ok:
+                    stats.reject_reasons[f"reject.{redirect_reason}"] += 1
+                    mark_done(run_id, url)
+                    continue
 
-            if not result.ok:
-                stats.reject_reasons[f"reject.fetch.{result.error}"] += 1
+                # Extract main text
+                extracted = extract_main_text(result.content, url=result.final_url or url)
+                if extracted is None:
+                    stats.reject_reasons["reject.extraction_failed"] += 1
+                    mark_done(run_id, url)
+                    continue
+
+                # Pipeline: keep decision + dedup
+                doc, decision = process_page(extracted, result.final_url or url, cfg, dedup)
+
+                if doc is None:
+                    stats.reject_reasons[decision.reason] += 1
+                    if decision.reason == "reject.dedup.exact":
+                        stats.duplicates += 1
+                    mark_done(run_id, url)
+                    continue
+
+                # Write to shard
+                shard_result = writer.write(doc.to_json())
+                stats.docs_kept += 1
+                stats.total_kept_chars += len(doc.text)
                 mark_done(run_id, url)
-                continue
 
-            # Safety: check redirect stays in allowlist
-            redirect_ok, redirect_reason = check_redirect_safety(
-                url, result.final_url, allowed_domains
-            )
-            if not redirect_ok:
-                stats.reject_reasons[f"reject.{redirect_reason}"] += 1
-                mark_done(run_id, url)
-                continue
+                if shard_result is not None:
+                    on_shard_closed(shard_result)
 
-            # Extract main text
-            extracted = extract_main_text(result.content, url=result.final_url or url)
-            if extracted is None:
-                stats.reject_reasons["reject.extraction_failed"] += 1
-                mark_done(run_id, url)
-                continue
+                # Discover links from this page (pre-filter unsafe URLs)
+                raw_links = extract_links(result.content, result.final_url or url)
+                safe_links = [lnk for lnk in raw_links if is_safe_url(lnk, allowed_domains)[0]]
+                frontier.add_links(safe_links)
 
-            # Pipeline: keep decision + dedup
-            doc, decision = process_page(extracted, result.final_url or url, cfg, dedup)
-
-            if doc is None:
-                stats.reject_reasons[decision.reason] += 1
-                if decision.reason == "reject.dedup.exact":
-                    stats.duplicates += 1
-                mark_done(run_id, url)
-                continue
-
-            # Write to shard
-            shard_result = writer.write(doc.to_json())
-            stats.docs_kept += 1
-            stats.total_kept_chars += len(doc.text)
-            mark_done(run_id, url)
-
-            if shard_result is not None:
-                on_shard_closed(shard_result)
-
-            # Discover links from this page (pre-filter unsafe URLs)
-            raw_links = extract_links(result.content, result.final_url or url)
-            safe_links = [lnk for lnk in raw_links if is_safe_url(lnk, allowed_domains)[0]]
-            frontier.add_links(safe_links)
-
-            # Check guardrails
-            triggered, reason = guardrails.check(state)
-            if triggered:
-                log.info("Guardrail triggered: %s", reason)
-                state.pause(reason)
-                break
+                # Check guardrails
+                triggered, reason = guardrails.check(state)
+                if triggered:
+                    log.info("Guardrail triggered: %s", reason)
+                    state.pause(reason)
+                    guardrail_hit = True
+                    break
 
             # Periodic state save and progress logging
-            if frontier.total_fetched % 50 == 0:
+            if frontier.total_fetched % 50 < pool.max_workers:
                 save_state(state)
                 log.info(
                     "Progress: fetched=%d kept=%d queue=%d",
@@ -248,6 +277,7 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         state.fail(str(exc))
         raise
     finally:
+        pool.shutdown(wait=True)
         final_meta = writer.close()
         if final_meta is not None:
             on_shard_closed(final_meta)
@@ -266,10 +296,3 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
     )
 
     return stats
-
-
-def _domain_from_url(url: str) -> str | None:
-    parsed = urlparse(url)
-    if not parsed.hostname:
-        return None
-    return canonical_domain(parsed.hostname)
