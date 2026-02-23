@@ -96,6 +96,10 @@ wiki:
   output_source: "wikipedia"
   max_articles: 0
 
+dataset_import:
+  enabled: false
+  output_dir: "outputs/dataset_import"
+
 dedup:
   store_path: "outputs/dedup_store.db"
   fuzzy_threshold: 0.8

@@ -15,6 +15,7 @@ from apps.common.logging import get_logger
 from apps.common.schema import Document
 
 if TYPE_CHECKING:
+    from apps.common.dedup_exact import ExactDedupStore
     from apps.common.dedup_store import DedupStore
     from apps.common.shard_writer import ShardWriter
 
@@ -69,7 +70,7 @@ class ImportRunReport:
 def import_and_process(
     importer: DatasetImporter,
     cfg: AppConfig,
-    dedup: DedupStore,
+    dedup: DedupStore | ExactDedupStore,
     writer: ShardWriter,
     on_shard_closed: Callable,
     run_id: str = "",

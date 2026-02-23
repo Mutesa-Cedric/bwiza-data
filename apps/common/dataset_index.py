@@ -13,6 +13,8 @@ SOURCE_TO_DATASET: dict[str, str] = {
     "commoncrawl": "pretrain",
     "targeted_web": "pretrain",
     "wikipedia": "pretrain",
+    "mbazanlp_v01.1": "pretrain",
+    "kinnews": "pretrain",
     "parallel_web": "parallel",
     "instructions_rw": "instructions",
 }

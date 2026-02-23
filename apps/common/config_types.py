@@ -129,6 +129,12 @@ class WikiConfig:
 
 
 @dataclass
+class DatasetImportConfig:
+    enabled: bool = False
+    output_dir: str = "outputs/dataset_import"
+
+
+@dataclass
 class DedupConfig:
     store_path: str = ""
     fuzzy_threshold: float = 0.8
@@ -159,3 +165,4 @@ class AppConfig:
     guardrails: GuardrailsConfig = field(default_factory=GuardrailsConfig)
     dedup: DedupConfig = field(default_factory=DedupConfig)
     wiki: WikiConfig = field(default_factory=WikiConfig)
+    dataset_import: DatasetImportConfig = field(default_factory=DatasetImportConfig)
