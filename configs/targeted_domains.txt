@@ -1,23 +1,62 @@
 # Rwanda domains for targeted crawling
 # One domain or URL per line. Lines starting with # are ignored.
+# Entries with /path restrict crawling to that path prefix.
 
 # News
 umuseke.rw
 igihe.com
 ktpress.rw
+newtimes.co.rw
+kigalitoday.com
+inyarwanda.com
+isimbi.rw
+intyoza.com
+rba.co.rw
+imvahonshya.co.rw
 
 # Government
 gov.rw
+minecofin.gov.rw
+mineduc.gov.rw
+parliament.gov.rw
+judiciary.gov.rw
+rdb.rw
+rgb.rw
+primature.gov.rw
+minaffet.gov.rw
+moh.gov.rw
+minijust.gov.rw
+minaloc.gov.rw
+mininfra.gov.rw
+minicom.gov.rw
+gasabo.gov.rw
+musanze.gov.rw
+rbc.gov.rw
+bnr.rw
+rura.rw
 
 # Education
 ur.ac.rw
+ines.ac.rw
+reb.rw
+nesa.gov.rw
 
 # Wikipedia
 rw.wikipedia.org
 
-# Religious/cultural
+# Religious
 diocesecyangugu.com
+bfrw.org
+eglisecatholiquerwanda.org
+bible.com/languages/kin
+jw.org/rw
+
+# International (path-filtered — mostly English otherwise)
+who.int/rw
+unicef.org/rwanda
+undp.org/rw
 
 # Community
 igire.rw
 umunsi.com
+amahoro.rw
