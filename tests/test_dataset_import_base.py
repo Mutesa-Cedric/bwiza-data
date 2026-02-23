@@ -89,6 +89,11 @@ def test_import_and_process_keeps_good_docs(mock_keep):
     assert report.total_kept_chars == len("good text") * 2
     assert writer.write.call_count == 2
 
+    # Verify source_id is persisted in document meta
+    written_doc = writer.write.call_args_list[0][0][0]
+    assert written_doc["meta"]["source_id"] == "0"
+    assert written_doc["meta"]["idx"] == 0
+
 
 @patch("apps.dataset_import.base.decide_keep")
 def test_import_and_process_rejects_bad_docs(mock_keep):

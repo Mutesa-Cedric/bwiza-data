@@ -109,7 +109,7 @@ def import_and_process(
             lang=decision.lang,
             lid_model="glotlid",
             lid_score=decision.lid_score,
-            meta=raw_doc.meta,
+            meta={**raw_doc.meta, "source_id": raw_doc.source_id},
         )
 
         result = writer.write(doc.to_json())
