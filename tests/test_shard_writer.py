@@ -87,8 +87,23 @@ def test_tmp_renamed_to_final(tmp_path):
     meta = writer.close()
     assert meta is not None
 
-    # Final path should exist, no .tmp
+    # Final path should exist, no .tmp files anywhere in output dir
     from pathlib import Path
 
     assert Path(meta.path).exists()
-    assert not Path(meta.path + ".tmp").exists()
+    tmp_files = list(Path(meta.path).parent.glob("*.tmp"))
+    assert tmp_files == []
+
+
+def test_no_orphan_tmp_after_close(tmp_path):
+    """After close(), no .tmp files should remain in the output directory."""
+    writer = ShardWriter(_cfg(tmp_path), "src", "run_orphan")
+    for i in range(5):
+        writer.write({"id": str(i), "text": f"doc {i}"})
+    writer.close()
+
+    from pathlib import Path
+
+    out_dir = Path(tmp_path) / "run_orphan"
+    tmp_files = list(out_dir.glob("*.tmp"))
+    assert tmp_files == [], f"Orphan .tmp files found: {tmp_files}"

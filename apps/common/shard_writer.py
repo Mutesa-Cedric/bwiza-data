@@ -43,6 +43,7 @@ class ShardWriter:
         self._closed_shards: list[ShardMeta] = []
         self._records_in_current = 0
         self._tokens_in_current = 0
+        self._shard_open = False
         self._open_shard()
 
     @property
@@ -61,9 +62,12 @@ class ShardWriter:
         self._writer = self._compressor.stream_writer(self._raw_file)
         self._records_in_current = 0
         self._tokens_in_current = 0
+        self._shard_open = True
 
     def write(self, doc_dict: dict) -> ShardMeta | None:
         """Write a document. Returns ShardMeta if rotation happened."""
+        if not self._shard_open:
+            self._open_shard()
         line = orjson.dumps(doc_dict) + b"\n"
         self._writer.write(line)
         self._records_in_current += 1
@@ -101,22 +105,24 @@ class ShardWriter:
             created_at=datetime.now(timezone.utc).isoformat(),
         )
         self._closed_shards.append(meta)
+        self._shard_open = False
         log.info(
             "Shard closed: %s (%d records, %d bytes)",
             self._current_name,
             meta.records_count,
             meta.bytes,
         )
-
-        self._open_shard()
         return meta
 
     def close(self) -> ShardMeta | None:
         """Close the current shard. Returns ShardMeta if any records were written."""
+        if not self._shard_open:
+            return None
         if self._records_in_current > 0:
             return self._close_current_shard()
         else:
             self._writer.close()
             self._raw_file.close()
             self._tmp_path.unlink(missing_ok=True)
+            self._shard_open = False
             return None
