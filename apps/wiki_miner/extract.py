@@ -102,6 +102,37 @@ _DOUBLE_ANGLE_RE = re.compile(r"<<([^>]+)>>")
 _SINGLE_ANGLE_RE = re.compile(r"<([a-zA-Z][^>]{0,40})>")
 _MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
+# Boilerplate tail-section headings (case-insensitive).
+# Once any of these headings is encountered, everything from that point onward
+# is truncated. Covers Kinyarwanda, English, and common misspellings.
+_TAIL_SECTIONS: frozenset[str] = frozenset(
+    {
+        # Kinyarwanda
+        "amashakiro",
+        "indanganturo",
+        "imiyoboro",
+        "reba kandi",
+        "ihuza ryo hanze",
+        "inyandiko zifashishijwe",
+        "ibindi gusoma",
+        "ibindi wareba",
+        "ibindi wamenya",
+        "reba aha",
+        "reba ibindi",
+        "ingingo zijyanye",
+        "aho byakuwe",
+        # English
+        "references",
+        "referances",
+        "notes",
+        "external links",
+        "see also",
+        "bibliography",
+        "further reading",
+        "sources",
+    }
+)
+
 
 @dataclass
 class WikiArticle:
@@ -118,6 +149,16 @@ def clean_wikitext(raw: str) -> str:
     text = _REF_TAG_RE.sub("", raw)
     text = _FILE_RE.sub("", text)
     text = _TABLE_RE.sub("", text)
+
+    # Truncate at boilerplate tail sections (References, See also, etc.)
+    # Must happen before mwparserfromhell strips heading markers
+    truncated_lines: list[str] = []
+    for line in text.splitlines():
+        m = _HEADING_RE.match(line)
+        if m and m.group(1).strip().rstrip(":").lower() in _TAIL_SECTIONS:
+            break
+        truncated_lines.append(line)
+    text = "\n".join(truncated_lines)
 
     # Parse with mwparserfromhell
     wikicode = mwparserfromhell.parse(text)

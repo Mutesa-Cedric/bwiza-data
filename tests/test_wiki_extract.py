@@ -334,6 +334,60 @@ def test_clean_wikitext_strips_stray_references():
     assert "</references>" not in result
 
 
+def test_clean_wikitext_truncates_amashakiro():
+    raw = "Content here.\n\n== Amashakiro ==\nRef 1.\nRef 2."
+    result = clean_wikitext(raw)
+    assert "Content here." in result
+    assert "Amashakiro" not in result
+    assert "Ref 1." not in result
+
+
+def test_clean_wikitext_truncates_reba_kandi():
+    raw = "Main text.\n\n== Reba kandi ==\n* Link 1\n* Link 2"
+    result = clean_wikitext(raw)
+    assert "Main text." in result
+    assert "Reba kandi" not in result
+    assert "Link 1" not in result
+
+
+def test_clean_wikitext_truncates_references():
+    raw = "Good content.\n\n== References ==\n1. Source A\n2. Source B"
+    result = clean_wikitext(raw)
+    assert "Good content." in result
+    assert "References" not in result
+    assert "Source A" not in result
+
+
+def test_clean_wikitext_truncates_imiyoboro():
+    raw = "Article body.\n\n== Imiyoboro ==\nhttps://example.com"
+    result = clean_wikitext(raw)
+    assert "Article body." in result
+    assert "Imiyoboro" not in result
+
+
+def test_clean_wikitext_truncates_external_links():
+    raw = "Body.\n\n== External links ==\n* [http://example.com Link]"
+    result = clean_wikitext(raw)
+    assert "Body." in result
+    assert "External links" not in result
+
+
+def test_clean_wikitext_preserves_content_headings():
+    raw = "Intro.\n\n== Amateka ==\nHistory content.\n\n== Ubukungu ==\nEconomy."
+    result = clean_wikitext(raw)
+    assert "Amateka" in result
+    assert "History content." in result
+    assert "Ubukungu" in result
+    assert "Economy." in result
+
+
+def test_clean_wikitext_truncates_with_colon_suffix():
+    raw = "Content.\n\n== Amashakiro: ==\nRef stuff."
+    result = clean_wikitext(raw)
+    assert "Content." in result
+    assert "Amashakiro" not in result
+
+
 def test_clean_wikitext_empty_input():
     assert clean_wikitext("") == ""
 
@@ -375,6 +429,14 @@ U Rwanda rwagize abami benshi.<ref>Igitabo cy'amateka</ref>
 
 Nyuma y'ubwigenge, u Rwanda rwateye imbere mu by'ubukungu.{{citation needed}}
 
+== Amashakiro ==
+1. Igitabo cy'amateka y'u Rwanda
+2. Indi nyandiko
+
+== Reba kandi ==
+* Afurika
+* Kigali
+
 [[Category:Ibihugu by'Afurika]]
 [[Ikiciro:Ibihugu]]
 [[en:Rwanda]]
@@ -407,3 +469,8 @@ __FORCETOC__"""
     assert "|}" not in result
     assert "Ikiciro:" not in result
     assert "__FORCETOC__" not in result
+
+    # Tail sections should be truncated
+    assert "Amashakiro" not in result
+    assert "Reba kandi" not in result
+    assert "Indi nyandiko" not in result
