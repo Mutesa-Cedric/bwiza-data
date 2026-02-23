@@ -88,3 +88,42 @@ class TestCrawlFrontier:
         assert f.next_url() is None
         assert f.total_fetched == 0
         assert f.queue_size == 0
+
+    def test_path_prefix_accepts_matching(self):
+        f = _make_frontier(
+            allowed_domains={"who.int"},
+            path_prefixes={"who.int": "/rw"},
+        )
+        f.add_seeds(["https://who.int/rw"])
+        f.add_links(["https://who.int/rw/about", "https://who.int/rw/news"])
+        assert f.queue_size == 3
+
+    def test_path_prefix_rejects_non_matching(self):
+        f = _make_frontier(
+            allowed_domains={"who.int"},
+            path_prefixes={"who.int": "/rw"},
+        )
+        f.add_links(["https://who.int/en/about", "https://who.int/fr/news"])
+        assert f.queue_size == 0
+
+    def test_path_prefix_no_prefix_accepts_all(self):
+        f = _make_frontier(
+            allowed_domains={"example.com"},
+            path_prefixes={},
+        )
+        f.add_links(["https://example.com/anything", "https://example.com/page2"])
+        assert f.queue_size == 2
+
+    def test_path_prefix_deep_path(self):
+        f = _make_frontier(
+            allowed_domains={"bible.com"},
+            path_prefixes={"bible.com": "/languages/kin"},
+        )
+        f.add_links(
+            [
+                "https://bible.com/languages/kin/verse1",
+                "https://bible.com/languages/eng/verse1",
+                "https://bible.com/about",
+            ]
+        )
+        assert f.queue_size == 1

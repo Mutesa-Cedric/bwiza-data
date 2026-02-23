@@ -26,7 +26,12 @@ from apps.targeted_crawler.pipeline import process_page
 from apps.targeted_crawler.rate_limit import DomainRateLimiter
 from apps.targeted_crawler.robots import RobotsChecker
 from apps.targeted_crawler.safety import check_redirect_safety, is_safe_url
-from apps.targeted_crawler.seeds import canonical_domain, domain_set_from_seeds, load_seeds
+from apps.targeted_crawler.seeds import (
+    canonical_domain,
+    domain_set_from_seeds,
+    load_seeds,
+    path_prefix_map_from_seeds,
+)
 
 log = get_logger(__name__)
 
@@ -84,8 +89,9 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         allowed_domains=allowed_domains,
         max_pages=tcfg.max_pages,
         per_domain_max_pages=tcfg.per_domain_max_pages,
+        path_prefixes=path_prefix_map_from_seeds(seeds),
     )
-    frontier.add_seeds([url for url, _ in seeds])
+    frontier.add_seeds([url for url, _, _ in seeds])
 
     # Pre-populate frontier's seen set with done URLs
     for done_url in done_set:

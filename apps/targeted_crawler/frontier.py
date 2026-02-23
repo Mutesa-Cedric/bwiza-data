@@ -21,10 +21,12 @@ class CrawlFrontier:
         allowed_domains: set[str],
         max_pages: int,
         per_domain_max_pages: int,
+        path_prefixes: dict[str, str] | None = None,
     ):
         self._allowed = allowed_domains
         self._max_pages = max_pages
         self._per_domain_max = per_domain_max_pages
+        self._path_prefixes = path_prefixes or {}
         self._queue: deque[str] = deque()
         self._seen: set[str] = set()
         self._domain_counts: dict[str, int] = {}
@@ -78,10 +80,14 @@ class CrawlFrontier:
     def _enqueue(self, url: str) -> None:
         if url in self._seen:
             return
-        domain = self._domain_for_url(url)
-        if domain is None:
+        parsed = urlparse(url)
+        if not parsed.hostname:
             return
+        domain = canonical_domain(parsed.hostname)
         if domain not in self._allowed:
+            return
+        prefix = self._path_prefixes.get(domain, "")
+        if prefix and not parsed.path.startswith(prefix):
             return
         self._seen.add(url)
         self._queue.append(url)
