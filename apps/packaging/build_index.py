@@ -19,6 +19,7 @@ SOURCE_S3_PREFIX: dict[str, str] = {
     "targeted_web": "bwiza/curated/v1/targeted_web/",
     "parallel_web": "bwiza/supervision/v1/parallel/",
     "instructions_rw": "bwiza/supervision/v1/instructions/",
+    "wikipedia": "bwiza/wiki/v1/",
 }
 
 
