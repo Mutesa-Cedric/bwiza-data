@@ -49,15 +49,16 @@ def _alpha_ratio_filter(text: str, cfg: AppConfig) -> FilterResult:
 
 
 def _repetition_filter(text: str, cfg: AppConfig) -> FilterResult:
-    lines = text.split("\n")
-    if len(lines) < 2:
-        return FilterResult(passed=True, reason="keep")
     from collections import Counter
 
-    counts = Counter(line.strip() for line in lines if line.strip())
+    counts = Counter(line.strip() for line in text.split("\n") if line.strip())
     if not counts:
         return FilterResult(passed=True, reason="keep")
     total = sum(counts.values())
+    # Need enough lines for the ratio to be meaningful; with <=3 non-empty
+    # lines the most-common ratio is always >=0.33, producing false positives.
+    if total <= 3:
+        return FilterResult(passed=True, reason="keep")
     most_common_count = counts.most_common(1)[0][1]
     repeat_ratio = most_common_count / total
     if repeat_ratio > cfg.filters.max_repeat_line_ratio:

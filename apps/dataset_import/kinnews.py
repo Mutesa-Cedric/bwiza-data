@@ -49,7 +49,7 @@ class KinNewsImporter(DatasetImporter):
         from datasets import load_dataset
 
         log.info("Loading %s (%s) from HuggingFace...", HF_DATASET_ID, HF_CONFIG)
-        ds = load_dataset(HF_DATASET_ID, HF_CONFIG)
+        ds = load_dataset(HF_DATASET_ID, HF_CONFIG, trust_remote_code=True)  # type: ignore[call-arg]
 
         doc_idx = 0
         for split_name in ("train", "test"):
@@ -57,7 +57,7 @@ class KinNewsImporter(DatasetImporter):
                 log.warning("Split %r not found in %s", split_name, HF_DATASET_ID)
                 continue
 
-            split = ds[split_name]
+            split = ds[split_name]  # type: ignore[index]
             log.info("Processing split %s: %d rows", split_name, len(split))
 
             for row in split:

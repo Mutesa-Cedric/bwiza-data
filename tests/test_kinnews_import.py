@@ -49,7 +49,7 @@ def test_load_yields_docs(mock_load):
     assert docs[0].meta["label"] == 0
     assert docs[1].meta["category"] == "sport"
 
-    mock_load.assert_called_once_with(HF_DATASET_ID, HF_CONFIG)
+    mock_load.assert_called_once_with(HF_DATASET_ID, HF_CONFIG, trust_remote_code=True)
 
 
 @patch("datasets.load_dataset")

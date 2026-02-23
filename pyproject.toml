@@ -14,7 +14,7 @@ dependencies = [
     "trafilatura>=1.6",
     "datasketch>=1.6",
     "mwparserfromhell>=0.6",
-    "datasets>=2.16",
+    "datasets>=2.16,<4",
 ]
 
 [project.optional-dependencies]

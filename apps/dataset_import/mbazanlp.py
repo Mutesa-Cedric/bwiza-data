@@ -24,7 +24,7 @@ class MbazaNLPImporter(DatasetImporter):
 
         log.info("Loading %s from HuggingFace...", HF_DATASET_ID)
         ds = load_dataset(HF_DATASET_ID, split="train")
-        log.info("Loaded %d rows from %s", len(ds), HF_DATASET_ID)
+        log.info("Loaded %d rows from %s", len(ds), HF_DATASET_ID)  # type: ignore[arg-type]
 
         for i, row in enumerate(ds):
             text = str(row["text"]) if row["text"] else ""  # type: ignore[index]
