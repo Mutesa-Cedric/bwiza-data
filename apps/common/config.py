@@ -7,6 +7,7 @@ import yaml
 from apps.common.config_types import (
     AppConfig,
     CCConfig,
+    CCIndexConfig,
     DedupConfig,
     FiltersConfig,
     GuardrailsConfig,
@@ -35,6 +36,7 @@ _SECTION_MAP = {
     "guardrails": GuardrailsConfig,
     "dedup": DedupConfig,
     "wiki": WikiConfig,
+    "cc_index": CCIndexConfig,
 }
 
 

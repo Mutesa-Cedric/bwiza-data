@@ -100,6 +100,34 @@ dataset_import:
   enabled: false
   output_dir: "outputs/dataset_import"
 
+cc_index:
+  enabled: false
+  crawls: []
+  discover_crawls: true
+  min_crawl_date: "2024-01"
+  max_crawl_date: ""
+  max_crawls: 6
+  domain_queries: ["*.rw/*"]
+  extra_domain_queries:
+    - "*.igihe.com/*"
+    - "*.inyarwanda.com/*"
+    - "*.kigalitoday.com/*"
+    - "*.intyoza.com/*"
+  cdx_page_size: 5
+  cdx_timeout_s: 30
+  cdx_max_retries: 3
+  cdx_retry_backoff_s: 2
+  cdx_rate_limit_s: 0.5
+  warc_concurrency: 8
+  warc_timeout_s: 30
+  warc_max_retries: 3
+  warc_retry_backoff_s: 2
+  max_records: 0
+  output_source: "cc_index"
+  user_agent: "bwiza-data/0.1"
+  status_filter: ["200"]
+  mime_filter: ["text/html"]
+
 dedup:
   store_path: "outputs/dedup_store.db"
   fuzzy_threshold: 0.8

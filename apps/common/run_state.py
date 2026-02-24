@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 
 # Valid pipeline names
-PIPELINES = {"cc_miner", "targeted_crawler", "parallel", "instructions"}
+PIPELINES = {"cc_miner", "targeted_crawler", "parallel", "instructions", "cc_index"}
 
 # Valid run statuses
 STATUSES = {"created", "running", "paused", "completed", "failed"}

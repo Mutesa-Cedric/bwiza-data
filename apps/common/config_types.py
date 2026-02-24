@@ -136,6 +136,32 @@ class DatasetImportConfig:
 
 
 @dataclass
+class CCIndexConfig:
+    enabled: bool = False
+    crawls: list[str] = field(default_factory=list)
+    discover_crawls: bool = True
+    min_crawl_date: str = "2024-01"
+    max_crawl_date: str = ""
+    max_crawls: int = 6
+    domain_queries: list[str] = field(default_factory=lambda: ["*.rw/*"])
+    extra_domain_queries: list[str] = field(default_factory=list)
+    cdx_page_size: int = 5
+    cdx_timeout_s: int = 30
+    cdx_max_retries: int = 3
+    cdx_retry_backoff_s: int = 2
+    cdx_rate_limit_s: float = 0.5
+    warc_concurrency: int = 8
+    warc_timeout_s: int = 30
+    warc_max_retries: int = 3
+    warc_retry_backoff_s: int = 2
+    max_records: int = 0
+    output_source: str = "cc_index"
+    user_agent: str = "bwiza-data/0.1"
+    status_filter: list[str] = field(default_factory=lambda: ["200"])
+    mime_filter: list[str] = field(default_factory=lambda: ["text/html"])
+
+
+@dataclass
 class DedupConfig:
     store_path: str = ""
     fuzzy_threshold: float = 0.8
@@ -167,3 +193,4 @@ class AppConfig:
     dedup: DedupConfig = field(default_factory=DedupConfig)
     wiki: WikiConfig = field(default_factory=WikiConfig)
     dataset_import: DatasetImportConfig = field(default_factory=DatasetImportConfig)
+    cc_index: CCIndexConfig = field(default_factory=CCIndexConfig)
