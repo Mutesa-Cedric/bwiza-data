@@ -43,19 +43,37 @@ minisports.gov.rw
 rppa.gov.rw
 rwandatrade.rw
 
-# Government — districts
+# Government — all 30 districts
 gasabo.gov.rw
-musanze.gov.rw
-huye.gov.rw
-kamonyi.gov.rw
-nyarugenge.gov.rw
 kicukiro.gov.rw
-bugesera.gov.rw
-rusizi.gov.rw
-rubavu.gov.rw
+nyarugenge.gov.rw
+musanze.gov.rw
+burera.gov.rw
+gakenke.gov.rw
+gicumbi.gov.rw
+rulindo.gov.rw
+huye.gov.rw
+gisagara.gov.rw
+kamonyi.gov.rw
 muhanga.gov.rw
-karongi.gov.rw
+nyamagabe.gov.rw
+nyanza.gov.rw
+nyaruguru.gov.rw
+ruhango.gov.rw
+bugesera.gov.rw
+gatsibo.gov.rw
+kayonza.gov.rw
+kirehe.gov.rw
 ngoma.gov.rw
+nyagatare.gov.rw
+rwamagana.gov.rw
+karongi.gov.rw
+ngororero.gov.rw
+nyabihu.gov.rw
+nyamasheke.gov.rw
+rubavu.gov.rw
+rusizi.gov.rw
+rutsiro.gov.rw
 
 # Education
 ur.ac.rw
