@@ -172,6 +172,38 @@ class CCIndexConfig:
 
 
 @dataclass
+class WaybackConfig:
+    enabled: bool = False
+    domains: list[str] = field(
+        default_factory=lambda: [
+            "igihe.com",
+            "umuseke.rw",
+            "ktpress.rw",
+            "newtimes.co.rw",
+            "kigalitoday.com",
+            "inyarwanda.com",
+        ]
+    )
+    from_year: int = 2015
+    to_year: int = 2025
+    cdx_page_size: int = 5
+    cdx_timeout_s: int = 30
+    cdx_max_retries: int = 3
+    cdx_retry_backoff_s: int = 5
+    cdx_rate_limit_s: float = 1.0
+    fetch_concurrency: int = 1
+    fetch_timeout_s: int = 30
+    fetch_rate_limit_s: float = 1.0
+    fetch_max_retries: int = 3
+    fetch_retry_backoff_s: int = 5
+    max_records: int = 0
+    output_source: str = "wayback"
+    user_agent: str = "bwiza-data/0.1 (kinyarwanda-corpus)"
+    status_filter: list[str] = field(default_factory=lambda: ["200"])
+    mime_filter: list[str] = field(default_factory=lambda: ["text/html"])
+
+
+@dataclass
 class DedupConfig:
     store_path: str = ""
     fuzzy_threshold: float = 0.8
@@ -204,3 +236,4 @@ class AppConfig:
     wiki: WikiConfig = field(default_factory=WikiConfig)
     dataset_import: DatasetImportConfig = field(default_factory=DatasetImportConfig)
     cc_index: CCIndexConfig = field(default_factory=CCIndexConfig)
+    wayback: WaybackConfig = field(default_factory=WaybackConfig)

@@ -136,6 +136,33 @@ cc_index:
   status_filter: ["200"]
   mime_filter: ["text/html"]
 
+wayback:
+  enabled: false
+  domains:
+    - "igihe.com"
+    - "umuseke.rw"
+    - "ktpress.rw"
+    - "newtimes.co.rw"
+    - "kigalitoday.com"
+    - "inyarwanda.com"
+  from_year: 2015
+  to_year: 2025
+  cdx_page_size: 5
+  cdx_timeout_s: 30
+  cdx_max_retries: 3
+  cdx_retry_backoff_s: 5
+  cdx_rate_limit_s: 1.0
+  fetch_concurrency: 1
+  fetch_timeout_s: 30
+  fetch_rate_limit_s: 1.0
+  fetch_max_retries: 3
+  fetch_retry_backoff_s: 5
+  max_records: 0
+  output_source: "wayback"
+  user_agent: "bwiza-data/0.1 (kinyarwanda-corpus)"
+  status_filter: ["200"]
+  mime_filter: ["text/html"]
+
 dedup:
   store_path: "outputs/dedup_store.db"
   fuzzy_threshold: 0.8

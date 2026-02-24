@@ -19,6 +19,7 @@ from apps.common.config_types import (
     S3Config,
     ShardingConfig,
     TargetedConfig,
+    WaybackConfig,
     WikiConfig,
 )
 
@@ -37,6 +38,7 @@ _SECTION_MAP = {
     "dedup": DedupConfig,
     "wiki": WikiConfig,
     "cc_index": CCIndexConfig,
+    "wayback": WaybackConfig,
 }
 
 
