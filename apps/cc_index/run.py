@@ -1,5 +1,6 @@
 """End-to-end CC index mining runner (resumable, concurrent)."""
 
+import random
 from datetime import datetime, timezone
 
 from apps.cc_index.cdx_client import CDXRecord, build_record_list, discover_crawls
@@ -101,6 +102,10 @@ def run_cc_index(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         state.complete()
         save_state(state)
         return RunStats()
+
+    # Shuffle to avoid alphabetical bias (CDX returns sorted by URL,
+    # so without shuffling we'd only process early-alphabet domains).
+    random.shuffle(records)
 
     # Apply max_records cap
     if icfg.max_records > 0 and len(records) > icfg.max_records:
