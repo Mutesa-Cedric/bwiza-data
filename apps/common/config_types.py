@@ -186,7 +186,6 @@ class WaybackConfig:
     )
     from_year: int = 2015
     to_year: int = 2025
-    cdx_page_size: int = 5
     cdx_timeout_s: int = 30
     cdx_max_retries: int = 3
     cdx_retry_backoff_s: int = 5

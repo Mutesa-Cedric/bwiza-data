@@ -12,13 +12,11 @@ from apps.wayback.cdx_client import (
 
 
 def _cfg(
-    cdx_page_size: int = 1,
     cdx_max_retries: int = 2,
     status_filter: list[str] | None = None,
     mime_filter: list[str] | None = None,
 ) -> WaybackConfig:
     return WaybackConfig(
-        cdx_page_size=cdx_page_size,
         cdx_timeout_s=5,
         cdx_max_retries=cdx_max_retries,
         cdx_retry_backoff_s=0,
@@ -44,17 +42,11 @@ def _cdx_json_response():
 def test_query_wayback_cdx_parses_json(mock_get):
     cfg = _cfg()
 
-    num_pages_resp = MagicMock()
-    num_pages_resp.text = "1"
-    num_pages_resp.status_code = 200
-    num_pages_resp.raise_for_status = MagicMock()
-
-    page_resp = MagicMock()
-    page_resp.text = _cdx_json_response()
-    page_resp.status_code = 200
-    page_resp.raise_for_status = MagicMock()
-
-    mock_get.side_effect = [num_pages_resp, page_resp]
+    resp = MagicMock()
+    resp.text = _cdx_json_response()
+    resp.status_code = 200
+    resp.raise_for_status = MagicMock()
+    mock_get.return_value = resp
 
     records = list(query_wayback_cdx("igihe.com", cfg))
     assert len(records) == 2
@@ -66,37 +58,32 @@ def test_query_wayback_cdx_parses_json(mock_get):
 
 
 @patch("apps.wayback.cdx_client.requests.get")
-def test_query_wayback_cdx_filters_status(mock_get):
-    cfg = _cfg(status_filter=["200"])
+def test_query_wayback_cdx_sends_server_side_filters(mock_get):
+    cfg = _cfg(status_filter=["200"], mime_filter=["text/html"])
 
-    num_pages_resp = MagicMock()
-    num_pages_resp.text = "1"
-    num_pages_resp.status_code = 200
-    num_pages_resp.raise_for_status = MagicMock()
+    resp = MagicMock()
+    resp.text = _cdx_json_response()
+    resp.status_code = 200
+    resp.raise_for_status = MagicMock()
+    mock_get.return_value = resp
 
-    rows = [
-        ["timestamp", "original", "statuscode", "mimetype", "length"],
-        ["20231215120000", "https://igihe.com/ok", "200", "text/html", "5000"],
-        ["20231215120000", "https://igihe.com/redirect", "301", "text/html", "100"],
-    ]
-    page_resp = MagicMock()
-    page_resp.text = json.dumps(rows)
-    page_resp.status_code = 200
-    page_resp.raise_for_status = MagicMock()
+    list(query_wayback_cdx("igihe.com", cfg))
 
-    mock_get.side_effect = [num_pages_resp, page_resp]
-
-    records = list(query_wayback_cdx("igihe.com", cfg))
-    assert len(records) == 1
-    assert records[0].original_url == "https://igihe.com/ok"
+    # Verify server-side filter params were sent
+    call_args = mock_get.call_args
+    params = call_args.kwargs.get("params") or call_args[1].get("params")
+    # params is a list of tuples
+    filter_params = [v for k, v in params if k == "filter"]
+    assert "statuscode:200" in filter_params
+    assert "mimetype:text/html" in filter_params
 
 
 @patch("apps.wayback.cdx_client.requests.get")
-def test_query_wayback_cdx_handles_zero_pages(mock_get):
+def test_query_wayback_cdx_handles_empty_response(mock_get):
     cfg = _cfg()
 
     resp = MagicMock()
-    resp.text = "0"
+    resp.text = "[]"
     resp.status_code = 200
     resp.raise_for_status = MagicMock()
     mock_get.return_value = resp
@@ -109,21 +96,15 @@ def test_query_wayback_cdx_handles_zero_pages(mock_get):
 def test_query_wayback_cdx_handles_rate_limit(mock_get):
     cfg = _cfg(cdx_max_retries=3)
 
-    # First call: 429, second call: success
     rate_limited = MagicMock()
     rate_limited.status_code = 429
 
     success = MagicMock()
-    success.text = "1"
+    success.text = _cdx_json_response()
     success.status_code = 200
     success.raise_for_status = MagicMock()
 
-    page_resp = MagicMock()
-    page_resp.text = _cdx_json_response()
-    page_resp.status_code = 200
-    page_resp.raise_for_status = MagicMock()
-
-    mock_get.side_effect = [rate_limited, success, page_resp]
+    mock_get.side_effect = [rate_limited, success]
 
     records = list(query_wayback_cdx("igihe.com", cfg))
     assert len(records) == 2
@@ -133,22 +114,16 @@ def test_query_wayback_cdx_handles_rate_limit(mock_get):
 def test_query_wayback_cdx_skips_malformed_rows(mock_get):
     cfg = _cfg()
 
-    num_pages_resp = MagicMock()
-    num_pages_resp.text = "1"
-    num_pages_resp.status_code = 200
-    num_pages_resp.raise_for_status = MagicMock()
-
     rows = [
         ["timestamp", "original", "statuscode", "mimetype", "length"],
         ["20231215120000", "https://igihe.com/ok", "200", "text/html", "5000"],
         ["incomplete"],  # malformed: too few columns
     ]
-    page_resp = MagicMock()
-    page_resp.text = json.dumps(rows)
-    page_resp.status_code = 200
-    page_resp.raise_for_status = MagicMock()
-
-    mock_get.side_effect = [num_pages_resp, page_resp]
+    resp = MagicMock()
+    resp.text = json.dumps(rows)
+    resp.status_code = 200
+    resp.raise_for_status = MagicMock()
+    mock_get.return_value = resp
 
     records = list(query_wayback_cdx("igihe.com", cfg))
     assert len(records) == 1

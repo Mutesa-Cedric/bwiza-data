@@ -147,7 +147,6 @@ wayback:
     - "inyarwanda.com"
   from_year: 2015
   to_year: 2025
-  cdx_page_size: 5
   cdx_timeout_s: 30
   cdx_max_retries: 3
   cdx_retry_backoff_s: 5

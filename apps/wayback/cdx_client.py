@@ -39,78 +39,35 @@ def query_wayback_cdx(
 ) -> Iterator[WaybackRecord]:
     """Query Wayback CDX for all captures of a domain.
 
-    Handles pagination and rate limiting.
+    Uses server-side filters (statuscode, mimetype) and date range.
     Yields WaybackRecord for each matching entry.
     """
-    num_pages = _get_num_pages(domain, cfg)
-    if num_pages == 0:
-        return
-
-    for page in range(min(num_pages, cfg.cdx_page_size)):
-        yield from _fetch_cdx_page(domain, page, cfg)
-        if page < num_pages - 1:
-            time.sleep(cfg.cdx_rate_limit_s)
+    yield from _fetch_cdx_records(domain, cfg)
 
 
-def _get_num_pages(domain: str, cfg: WaybackConfig) -> int:
-    """Get the number of CDX pages via showNumPages."""
-    params: dict[str, str] = {
-        "url": f"{domain}/*",
-        "output": "json",
-        "fl": "timestamp,original,statuscode,mimetype,length",
-        "showNumPages": "true",
-    }
-    if cfg.from_year:
-        params["from"] = str(cfg.from_year)
-    if cfg.to_year:
-        params["to"] = str(cfg.to_year)
-
-    for attempt in range(cfg.cdx_max_retries):
-        try:
-            resp = requests.get(
-                CDX_BASE,
-                params=params,
-                timeout=cfg.cdx_timeout_s,
-                headers={"User-Agent": cfg.user_agent},
-            )
-            if resp.status_code == 429:
-                wait = cfg.cdx_retry_backoff_s * (2**attempt)
-                log.warning("Wayback CDX rate limited, waiting %ds", wait)
-                time.sleep(wait)
-                continue
-            resp.raise_for_status()
-            return int(resp.text.strip())
-        except (requests.RequestException, ValueError) as exc:
-            if attempt == cfg.cdx_max_retries - 1:
-                log.error("Wayback CDX page count failed for %s: %s", domain, exc)
-                return 0
-            time.sleep(cfg.cdx_retry_backoff_s * (2**attempt))
-    return 0
-
-
-def _fetch_cdx_page(
+def _fetch_cdx_records(
     domain: str,
-    page: int,
     cfg: WaybackConfig,
 ) -> Iterator[WaybackRecord]:
-    """Fetch a single page of CDX results.
+    """Fetch CDX results with server-side filters.
 
     The Wayback CDX API returns a JSON array of arrays.
     The first row is the header: ["timestamp","original","statuscode",...].
+    Server-side filter params avoid the pagination+date-filter incompatibility.
     """
-    params: dict[str, str] = {
-        "url": f"{domain}/*",
-        "output": "json",
-        "fl": "timestamp,original,statuscode,mimetype,length",
-        "page": str(page),
-    }
+    params: list[tuple[str, str]] = [
+        ("url", f"{domain}/*"),
+        ("output", "json"),
+        ("fl", "timestamp,original,statuscode,mimetype,length"),
+    ]
     if cfg.from_year:
-        params["from"] = str(cfg.from_year)
+        params.append(("from", f"{cfg.from_year}0101"))
     if cfg.to_year:
-        params["to"] = str(cfg.to_year)
-
-    status_filter = set(cfg.status_filter)
-    mime_filter = set(cfg.mime_filter)
+        params.append(("to", f"{cfg.to_year}1231"))
+    for status in cfg.status_filter:
+        params.append(("filter", f"statuscode:{status}"))
+    for mime in cfg.mime_filter:
+        params.append(("filter", f"mimetype:{mime}"))
 
     for attempt in range(cfg.cdx_max_retries):
         try:
@@ -122,14 +79,14 @@ def _fetch_cdx_page(
             )
             if resp.status_code == 429:
                 wait = cfg.cdx_retry_backoff_s * (2**attempt)
-                log.warning("Wayback CDX rate limited on page %d, waiting %ds", page, wait)
+                log.warning("Wayback CDX rate limited for %s, waiting %ds", domain, wait)
                 time.sleep(wait)
                 continue
             resp.raise_for_status()
             break
         except requests.RequestException as exc:
             if attempt == cfg.cdx_max_retries - 1:
-                log.error("Wayback CDX page %d fetch failed: %s", page, exc)
+                log.error("Wayback CDX fetch failed for %s: %s", domain, exc)
                 return
             time.sleep(cfg.cdx_retry_backoff_s * (2**attempt))
     else:
@@ -138,7 +95,7 @@ def _fetch_cdx_page(
     try:
         rows = json.loads(resp.text)
     except json.JSONDecodeError:
-        log.error("Wayback CDX returned invalid JSON for page %d", page)
+        log.error("Wayback CDX returned invalid JSON for %s", domain)
         return
 
     if not isinstance(rows, list) or len(rows) < 2:
@@ -156,11 +113,6 @@ def _fetch_cdx_page(
             str(row[3]),
             str(row[4]),
         )
-
-        if status_filter and status_code not in status_filter:
-            continue
-        if mime_filter and mime_type not in mime_filter:
-            continue
 
         try:
             length = int(length_str)
