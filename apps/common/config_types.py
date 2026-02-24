@@ -72,7 +72,7 @@ class TargetedConfig:
     enabled: bool = False
     seeds_file: str = "configs/targeted_domains.txt"
     max_pages: int = 20000
-    per_domain_max_pages: int = 500
+    per_domain_max_pages: int = 5000
     concurrency: int = 8
     request_timeout_s: int = 30
     max_retries: int = 5
