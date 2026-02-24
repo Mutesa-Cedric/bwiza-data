@@ -14,6 +14,12 @@ class FiltersConfig:
     max_url_ratio: float = 0.20
     max_repeat_line_ratio: float = 0.30
     min_alpha_ratio: float = 0.70
+    max_chars: int = 100_000
+    min_words: int = 30
+    max_word_ngram_rep_2: float = 0.20
+    max_word_ngram_rep_3: float = 0.18
+    max_word_ngram_rep_4: float = 0.16
+    max_non_latin_alpha_ratio: float = 0.10
 
 
 @dataclass

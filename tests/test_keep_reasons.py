@@ -14,9 +14,13 @@ STABLE_REASONS = {
     "reject.lid.not_rw",
     "reject.lid.low_confidence",
     "reject.filter.min_chars",
+    "reject.filter.max_chars",
+    "reject.filter.min_words",
     "reject.filter.url_ratio",
     "reject.filter.alpha_ratio",
     "reject.filter.repetition",
+    "reject.filter.word_ngram_repetition",
+    "reject.filter.mixed_script",
 }
 
 
@@ -48,8 +52,15 @@ def test_keep_produces_stable_reason():
         cases.append(decide_keep("a " * 50, _cfg()))
 
     # keep
+    keep_text = (
+        "Umuryango wAbibumbye wafashwe mu mwaka wa 1945 nyuma yintambara. "
+        "Intego yayo ni amahoro ku isi yose no gukomeza umutekano. "
+        "Abanyarwanda benshi bakunze gukora ubuhinzi cyane mu ntara zose. "
+        "Igihugu cyItaliya gifite amateka maremare cyane muri Buraya. "
+        "Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda."
+    )
     with patch("apps.cc_miner.keep.predict_lang", return_value=("kin_Latn", 0.95, "m")):
-        cases.append(decide_keep("Muraho neza. " * 20, _cfg()))
+        cases.append(decide_keep(keep_text, _cfg()))
 
     for decision in cases:
         assert decision.reason in STABLE_REASONS, f"Unstable reason: {decision.reason}"

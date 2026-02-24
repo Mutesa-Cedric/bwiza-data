@@ -23,7 +23,13 @@ def setup_function():
 @patch("apps.cc_miner.keep.predict_lang")
 def test_keep_rw_document(mock_lid):
     mock_lid.return_value = ("kin_Latn", 0.95, "glotlid")
-    text = "Muraho neza. " * 20
+    text = (
+        "Umuryango wAbibumbye wafashwe mu mwaka wa 1945 nyuma yintambara. "
+        "Intego yayo ni amahoro ku isi yose no gukomeza umutekano. "
+        "Abanyarwanda benshi bakunze gukora ubuhinzi cyane mu ntara zose. "
+        "Igihugu cyItaliya gifite amateka maremare cyane muri Buraya. "
+        "Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda."
+    )
     result = decide_keep(text, _cfg())
     assert result.keep is True
     assert result.reason == "keep"

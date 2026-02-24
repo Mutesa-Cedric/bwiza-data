@@ -17,8 +17,11 @@ SAMPLE_HTML = (
     b"Guverinoma y'u Rwanda yashyizeho politiki zitandukanye zo guteza "
     b"imbere uburezi mu gihugu hose. Ibi birimo gushyiraho amashuri "
     b"mashya no guteza imbere ikoranabuhanga mu burezi. "
-    b"Mu Rwanda, uburezi ni ingenzi cyane ku iterambere ry'igihugu. "
-    b"Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye."
+    b"Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda cyane. "
+    b"Abantu bo mu turere dutandukanye bafite imico itandukanye koko. "
+    b"Ubuhinzi bwigihugu bugomba guhindurwa kugirango butange umusaruro mwiza. "
+    b"Inyamaswa zo mu mashyamba azwi muri Afurika zikurura abashakashatsi. "
+    b"Imyidagaduro itandukanye irimo umupira no kwiruka bikunzwe neza."
     b"</p></main></body></html>"
 )
 
@@ -78,9 +81,15 @@ def test_runner_produces_stats(mock_lid, mock_build, mock_fetch):
         url = f"https://site{offset // 1000}.rw/page"
         # Embed URL inside <p> so trafilatura preserves it (avoids dedup)
         unique_html = (
-            b"<html><body><main><p>Mu Rwanda uburezi ni ingenzi cyane "
-            b"ku iterambere igihugu. Abanyarwanda bose bagomba kubona "
-            b"uburezi bwiza kandi bukwiye guverinoma. "
+            b"<html><body><main><p>"
+            b"Mu Rwanda uburezi ni ingenzi cyane ku iterambere igihugu. "
+            b"Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye. "
+            b"Guverinoma yashyizeho politiki zitandukanye zo guteza imbere. "
+            b"Ibi birimo gushyiraho amashuri mashya no ikoranabuhanga. "
+            b"Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda. "
+            b"Abantu bo mu turere dutandukanye bafite imico itandukanye. "
+            b"Ubuhinzi bwigihugu bugomba guhindurwa kugirango butange umusaruro. "
+            b"Inyamaswa zo mu mashyamba azwi muri Afurika zikurura benshi. "
             + url.encode()
             + b"</p></main></body></html>"
         )

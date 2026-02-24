@@ -19,8 +19,11 @@ Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye.
 Guverinoma y'u Rwanda yashyizeho politiki zitandukanye zo guteza
 imbere uburezi mu gihugu hose. Ibi birimo gushyiraho amashuri
 mashya no guteza imbere ikoranabuhanga mu burezi.
-Mu Rwanda, uburezi ni ingenzi cyane ku iterambere ry'igihugu.
-Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye.</p>
+Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda cyane.
+Abantu bo mu turere dutandukanye bafite imico itandukanye koko.
+Ubuhinzi bwigihugu bugomba guhindurwa kugirango butange umusaruro mwiza.
+Inyamaswa zo mu mashyamba azwi muri Afurika zikurura abashakashatsi.
+Imyidagaduro itandukanye irimo umupira no kwiruka bikunzwe neza.</p>
 </main>
 <a href="/page2">More</a>
 </body>
@@ -136,9 +139,15 @@ def test_runner_concurrent_fetching(mock_lid, mock_fetch):
         call_times.append(time.monotonic())
         # Embed URL in content so each page is unique (avoids dedup)
         unique_html = (
-            b"<html><body><main><p>Mu Rwanda uburezi ni ingenzi cyane "
-            b"ku iterambere igihugu. Abanyarwanda bose bagomba kubona "
-            b"uburezi bwiza kandi bukwiye guverinoma. "
+            b"<html><body><main><p>"
+            b"Mu Rwanda uburezi ni ingenzi cyane ku iterambere igihugu. "
+            b"Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye. "
+            b"Guverinoma yashyizeho politiki zitandukanye zo guteza imbere. "
+            b"Ibi birimo gushyiraho amashuri mashya no ikoranabuhanga. "
+            b"Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda. "
+            b"Abantu bo mu turere dutandukanye bafite imico itandukanye. "
+            b"Ubuhinzi bwigihugu bugomba guhindurwa kugirango butange umusaruro. "
+            b"Inyamaswa zo mu mashyamba azwi muri Afurika zikurura benshi. "
             + url.encode()
             + b"</p></main></body></html>"
         )

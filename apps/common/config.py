@@ -84,6 +84,24 @@ def _validate(cfg: AppConfig) -> None:
             f"filters.min_alpha_ratio must be in [0, 1], got {cfg.filters.min_alpha_ratio}"
         )
 
+    if cfg.filters.max_chars <= 0:
+        raise ValueError(f"filters.max_chars must be > 0, got {cfg.filters.max_chars}")
+
+    if cfg.filters.min_words <= 0:
+        raise ValueError(f"filters.min_words must be > 0, got {cfg.filters.min_words}")
+
+    for _n in (2, 3, 4):
+        _attr = f"max_word_ngram_rep_{_n}"
+        _val = getattr(cfg.filters, _attr)
+        if not 0 <= _val <= 1:
+            raise ValueError(f"filters.{_attr} must be in [0, 1], got {_val}")
+
+    if not 0 <= cfg.filters.max_non_latin_alpha_ratio <= 1:
+        raise ValueError(
+            f"filters.max_non_latin_alpha_ratio must be in [0, 1], "
+            f"got {cfg.filters.max_non_latin_alpha_ratio}"
+        )
+
     if cfg.sharding.target_compressed_mb <= 0:
         raise ValueError(
             f"sharding.target_compressed_mb must be > 0, got {cfg.sharding.target_compressed_mb}"

@@ -12,7 +12,12 @@ RW_TEXT = (
     "Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye. "
     "Guverinoma y'u Rwanda yashyizeho politiki zitandukanye zo guteza "
     "imbere uburezi mu gihugu hose. Ibi birimo gushyiraho amashuri "
-    "mashya no guteza imbere ikoranabuhanga mu burezi. " * 3
+    "mashya no guteza imbere ikoranabuhanga mu burezi. "
+    "Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda cyane. "
+    "Abantu bo mu turere dutandukanye bafite imico itandukanye koko. "
+    "Ubuhinzi bwigihugu bugomba guhindurwa kugirango butange umusaruro mwiza. "
+    "Inyamaswa zo mu mashyamba azwi muri Afurika zikurura abashakashatsi. "
+    "Imyidagaduro itandukanye irimo umupira no kwiruka bikunzwe neza."
 )
 
 

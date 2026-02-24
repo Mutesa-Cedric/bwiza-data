@@ -21,6 +21,10 @@ def test_load_default_config():
     assert isinstance(cfg, AppConfig)
     assert cfg.lid.min_confidence == 0.80
     assert cfg.filters.min_chars == 200
+    assert cfg.filters.max_chars == 100_000
+    assert cfg.filters.min_words == 30
+    assert cfg.filters.max_word_ngram_rep_2 == 0.20
+    assert cfg.filters.max_non_latin_alpha_ratio == 0.10
     assert cfg.sharding.target_compressed_mb == 200
     assert cfg.logging.level == "INFO"
 
@@ -170,4 +174,36 @@ def test_instructions_invalid_target_count():
         p = Path(d) / "bad.yaml"
         _write_yaml({"instructions": {"target_count": 0}}, p)
         with pytest.raises(ValueError, match="instructions.target_count"):
+            load_config(p)
+
+
+def test_invalid_max_chars():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"filters": {"max_chars": 0}}, p)
+        with pytest.raises(ValueError, match="filters.max_chars"):
+            load_config(p)
+
+
+def test_invalid_min_words():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"filters": {"min_words": -1}}, p)
+        with pytest.raises(ValueError, match="filters.min_words"):
+            load_config(p)
+
+
+def test_invalid_ngram_rep_threshold():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"filters": {"max_word_ngram_rep_2": 1.5}}, p)
+        with pytest.raises(ValueError, match="max_word_ngram_rep_2"):
+            load_config(p)
+
+
+def test_invalid_non_latin_ratio():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"filters": {"max_non_latin_alpha_ratio": -0.1}}, p)
+        with pytest.raises(ValueError, match="max_non_latin_alpha_ratio"):
             load_config(p)
