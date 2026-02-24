@@ -7,7 +7,6 @@ from apps.targeted_crawler.seeds import canonical_domain
 # File extensions that should never be crawled
 SKIP_EXTENSIONS = frozenset(
     {
-        ".pdf",
         ".doc",
         ".docx",
         ".xls",

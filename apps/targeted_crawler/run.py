@@ -23,6 +23,7 @@ from apps.targeted_crawler.extract import extract_main_text
 from apps.targeted_crawler.fetch import FetchResult, fetch_url
 from apps.targeted_crawler.frontier import CrawlFrontier
 from apps.targeted_crawler.links import extract_links
+from apps.targeted_crawler.pdf import extract_pdf_text
 from apps.targeted_crawler.pipeline import process_page
 from apps.targeted_crawler.rate_limit import DomainRateLimiter
 from apps.targeted_crawler.robots import RobotsChecker
@@ -226,22 +227,38 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                     mark_done(run_id, url)
                     continue
 
-                # Discover links from every fetched page (even if content
-                # fails LID/quality filters — an English homepage may link
-                # to Kinyarwanda articles).
-                raw_links = extract_links(result.content, result.final_url or url)
-                safe_links = [lnk for lnk in raw_links if is_safe_url(lnk, allowed_domains)[0]]
-                frontier.add_links(safe_links)
+                effective_url = result.final_url or url
+                is_pdf = "application/pdf" in (result.content_type or "")
 
-                # Extract main text
-                extracted = extract_main_text(result.content, url=result.final_url or url)
+                # Discover links from HTML pages (even if content fails
+                # LID/quality — an English homepage may link to rw articles).
+                # PDFs don't contribute HTML links to the frontier.
+                if not is_pdf:
+                    raw_links = extract_links(result.content, effective_url)
+                    safe_links = [lnk for lnk in raw_links if is_safe_url(lnk, allowed_domains)[0]]
+                    frontier.add_links(safe_links)
+
+                # Extract text based on content type
+                if is_pdf:
+                    extracted = extract_pdf_text(
+                        result.content,
+                        url=effective_url,
+                        max_pages=tcfg.pdf_max_pages,
+                        min_text_ratio=tcfg.pdf_min_text_ratio,
+                    )
+                else:
+                    extracted = extract_main_text(result.content, url=effective_url)
+
                 if extracted is None:
-                    stats.reject_reasons["reject.extraction_failed"] += 1
+                    reason = (
+                        "reject.pdf_extraction_failed" if is_pdf else "reject.extraction_failed"
+                    )
+                    stats.reject_reasons[reason] += 1
                     mark_done(run_id, url)
                     continue
 
                 # Pipeline: keep decision + dedup
-                doc, decision = process_page(extracted, result.final_url or url, cfg, dedup)
+                doc, decision = process_page(extracted, effective_url, cfg, dedup)
 
                 if doc is None:
                     stats.reject_reasons[decision.reason] += 1

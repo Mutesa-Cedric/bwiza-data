@@ -49,8 +49,8 @@ def test_fetch_follows_redirects(mock_get, cfg):
 
 @patch("apps.targeted_crawler.fetch.requests.get")
 def test_fetch_rejects_disallowed_content_type(mock_get, cfg):
-    mock_get.return_value = _mock_response(content_type="application/pdf")
-    result = fetch_url("https://example.com/file.pdf", cfg)
+    mock_get.return_value = _mock_response(content_type="application/zip")
+    result = fetch_url("https://example.com/file.zip", cfg)
     assert not result.ok
     assert "disallowed_content_type" in result.error
 

@@ -108,7 +108,9 @@ def test_targeted_defaults_loaded():
     assert cfg.targeted.per_domain_max_pages == 5000
     assert cfg.targeted.crawl_delay_s == 1.0
     assert cfg.targeted.output_source == "targeted_web"
-    assert cfg.targeted.allowed_content_types == ["text/html"]
+    assert cfg.targeted.allowed_content_types == ["text/html", "application/pdf"]
+    assert cfg.targeted.pdf_max_pages == 500
+    assert cfg.targeted.pdf_min_text_ratio == 0.10
 
 
 def test_targeted_invalid_max_pages():

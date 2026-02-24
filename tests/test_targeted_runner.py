@@ -224,3 +224,66 @@ def test_runner_domain_stats(mock_lid, mock_fetch):
     d = stats.to_dict()
     assert "domain_stats" in d
     assert "example.rw" in d["domain_stats"]
+
+
+@patch("apps.targeted_crawler.run.fetch_url")
+@patch("apps.targeted_crawler.run.extract_pdf_text")
+@patch("apps.cc_miner.keep.predict_lang")
+def test_runner_processes_pdf(mock_lid, mock_pdf, mock_fetch):
+    """PDF responses are routed to the PDF extractor instead of trafilatura."""
+    from apps.targeted_crawler.extract import ExtractedDoc
+
+    mock_lid.return_value = ("kin_Latn", 0.95, "glotlid")
+    rw_text = (
+        "Umuryango wAbibumbye wafashwe mu mwaka wa 1945 nyuma yintambara. "
+        "Intego yayo ni amahoro ku isi yose no gukomeza umutekano. "
+        "Abanyarwanda benshi bakunze gukora ubuhinzi cyane mu ntara zose. "
+        "Igihugu cyItaliya gifite amateka maremare cyane muri Buraya. "
+        "Umujyi wa Kigali ni umurwa mukuru wigihugu cyacu gikunda cyane. "
+        "Abantu bo mu turere dutandukanye bafite imico itandukanye koko. "
+        "Ubuhinzi bwigihugu bugomba guhindurwa kugirango butange umusaruro mwiza. "
+        "Inyamaswa zo mu mashyamba azwi muri Afurika zikurura abashakashatsi. "
+        "Imyidagaduro itandukanye irimo umupira no kwiruka bikunzwe neza."
+    )
+    mock_pdf.return_value = ExtractedDoc(title="PDF Report", text=rw_text)
+    mock_fetch.return_value = FetchResult(
+        url="https://example.rw/report.pdf",
+        status_code=200,
+        content_type="application/pdf",
+        content=b"%PDF-fake",
+        final_url="https://example.rw/report.pdf",
+    )
+
+    with tempfile.TemporaryDirectory() as d:
+        tmp_dir = Path(d)
+        seeds_file = tmp_dir / "seeds.txt"
+        seeds_file.write_text("example.rw\n")
+        cfg = _make_config(tmp_dir, seeds_file)
+        stats = run_targeted_crawler(cfg)
+
+    assert stats.docs_kept >= 1
+    mock_pdf.assert_called_once()
+
+
+@patch("apps.targeted_crawler.run.fetch_url")
+@patch("apps.targeted_crawler.run.extract_pdf_text")
+def test_runner_pdf_extraction_failure(mock_pdf, mock_fetch):
+    """Failed PDF extraction is tracked as reject.pdf_extraction_failed."""
+    mock_pdf.return_value = None
+    mock_fetch.return_value = FetchResult(
+        url="https://example.rw/scanned.pdf",
+        status_code=200,
+        content_type="application/pdf",
+        content=b"%PDF-scanned",
+        final_url="https://example.rw/scanned.pdf",
+    )
+
+    with tempfile.TemporaryDirectory() as d:
+        tmp_dir = Path(d)
+        seeds_file = tmp_dir / "seeds.txt"
+        seeds_file.write_text("example.rw\n")
+        cfg = _make_config(tmp_dir, seeds_file)
+        stats = run_targeted_crawler(cfg)
+
+    assert stats.docs_kept == 0
+    assert stats.reject_reasons.get("reject.pdf_extraction_failed", 0) >= 1

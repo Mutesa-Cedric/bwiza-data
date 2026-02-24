@@ -64,8 +64,10 @@ targeted:
   obey_robots_txt: true
   crawl_delay_s: 1.0
   max_response_bytes: 8000000
-  allowed_content_types: ["text/html"]
+  allowed_content_types: ["text/html", "application/pdf"]
   output_source: "targeted_web"
+  pdf_max_pages: 500
+  pdf_min_text_ratio: 0.10
 
 parallel:
   enabled: false

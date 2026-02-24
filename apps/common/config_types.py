@@ -87,9 +87,13 @@ class TargetedConfig:
     obey_robots_txt: bool = True
     crawl_delay_s: float = 1.0
     max_response_bytes: int = 8_000_000
-    allowed_content_types: list[str] = field(default_factory=lambda: ["text/html"])
+    allowed_content_types: list[str] = field(
+        default_factory=lambda: ["text/html", "application/pdf"]
+    )
     output_source: str = "targeted_web"
     min_lid_confidence: float = 0.85
+    pdf_max_pages: int = 500
+    pdf_min_text_ratio: float = 0.10
 
 
 @dataclass

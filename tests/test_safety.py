@@ -21,10 +21,10 @@ class TestIsSafeUrl:
         assert not ok
         assert reason == "bad_scheme"
 
-    def test_skip_pdf(self):
+    def test_pdf_url_allowed(self):
         ok, reason = is_safe_url("https://example.rw/doc.pdf", ALLOWED)
-        assert not ok
-        assert "skip_extension" in reason
+        assert ok
+        assert reason == "ok"
 
     def test_skip_image(self):
         ok, reason = is_safe_url("https://example.rw/photo.jpg", ALLOWED)
