@@ -64,6 +64,10 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
 
     tcfg = cfg.targeted
 
+    # Apply targeted-specific LID floor (stricter than global default)
+    if tcfg.min_lid_confidence > cfg.lid.min_confidence:
+        cfg.lid.min_confidence = tcfg.min_lid_confidence
+
     # Load seeds
     seeds = load_seeds(tcfg.seeds_file)
     if not seeds:
@@ -204,6 +208,9 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                 stats.docs_seen += 1
                 state.items_done += 1
                 state.current_item = url
+                url_domain = _domain_from_url(result.final_url or url) or ""
+                if url_domain:
+                    stats.domain_seen[url_domain] += 1
 
                 if not result.ok:
                     stats.reject_reasons[f"reject.fetch.{result.error}"] += 1
@@ -247,6 +254,8 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                 shard_result = writer.write(doc.to_json())
                 stats.docs_kept += 1
                 stats.total_kept_chars += len(doc.text)
+                if url_domain:
+                    stats.domain_kept[url_domain] += 1
                 mark_done(run_id, url)
 
                 if shard_result is not None:

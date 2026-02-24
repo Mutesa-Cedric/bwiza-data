@@ -72,7 +72,7 @@ class TargetedConfig:
     enabled: bool = False
     seeds_file: str = "configs/targeted_domains.txt"
     max_pages: int = 20000
-    per_domain_max_pages: int = 5000
+    per_domain_max_pages: int = 500
     concurrency: int = 8
     request_timeout_s: int = 30
     max_retries: int = 5
@@ -83,6 +83,7 @@ class TargetedConfig:
     max_response_bytes: int = 8_000_000
     allowed_content_types: list[str] = field(default_factory=lambda: ["text/html"])
     output_source: str = "targeted_web"
+    min_lid_confidence: float = 0.85
 
 
 @dataclass

@@ -22,6 +22,8 @@ class RunStats:
     duplicates: int = 0
     total_kept_chars: int = 0
     reject_reasons: Counter = field(default_factory=Counter)
+    domain_kept: Counter = field(default_factory=Counter)
+    domain_seen: Counter = field(default_factory=Counter)
 
     @property
     def keep_ratio(self) -> float:
@@ -38,7 +40,7 @@ class RunStats:
         return int(self.total_kept_chars / CHARS_PER_TOKEN)
 
     def to_dict(self) -> dict:
-        return {
+        d: dict = {
             "start_time": self.start_time,
             "end_time": time.time(),
             "elapsed_s": round(time.time() - self.start_time, 2),
@@ -51,6 +53,18 @@ class RunStats:
             "token_estimate": self.token_estimate,
             "reject_reasons": dict(self.reject_reasons.most_common()),
         }
+        if self.domain_seen:
+            d["domain_stats"] = {
+                dom: {
+                    "seen": self.domain_seen[dom],
+                    "kept": self.domain_kept.get(dom, 0),
+                    "yield": round(self.domain_kept.get(dom, 0) / self.domain_seen[dom], 4)
+                    if self.domain_seen[dom]
+                    else 0.0,
+                }
+                for dom in sorted(self.domain_seen, key=lambda x: -self.domain_seen[x])
+            }
+        return d
 
     def write_json(self, out_dir: str | Path, run_id: str) -> Path:
         path = Path(out_dir) / run_id / "stats.json"
