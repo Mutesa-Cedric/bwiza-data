@@ -80,3 +80,17 @@ def build_and_write_splits(
     """Build splits and write to disk."""
     splits = build_splits(index_path, seed, ratios)
     return write_splits(splits, output_dir)
+
+
+def build_mixed_splits_and_write(
+    index_path: str,
+    output_dir: str,
+    enrichment_path: str | None = None,
+    mix_config_path: str | None = None,
+) -> Path:
+    """Build content-type-aware mixed splits and write to disk."""
+    from apps.packaging.mixing import MixConfig, build_mixed_splits
+
+    config = MixConfig.from_json(mix_config_path) if mix_config_path else None
+    splits = build_mixed_splits(index_path, enrichment_path, config)
+    return write_splits(splits, output_dir)
