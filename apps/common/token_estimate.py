@@ -3,9 +3,10 @@
 # Text fields to consider for token estimation across all schemas.
 _TEXT_FIELDS = ("text", "rw_text", "en_text", "prompt", "response")
 
-# Calibrated on Qwen2.5-7B tokenizer against Kinyarwanda corpus (Gate G2).
+# Calibrated on Qwen3-8B tokenizer against Kinyarwanda corpus (Gate G2).
 # Kinyarwanda is agglutinative — BPE over-splits, yielding ~2.55 chars/token
 # vs ~4.0 for English. Previous constant of 4.0 underestimated by ~57%.
+# Re-calibrate after switching tokenizers (see scripts/gate_token_calibration.py).
 CHARS_PER_TOKEN = 2.55
 
 

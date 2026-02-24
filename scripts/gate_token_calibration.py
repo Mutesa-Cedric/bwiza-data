@@ -1,8 +1,8 @@
-"""Gate G2: Token calibration with Qwen2.5 tokenizer.
+"""Gate G2: Token calibration with Qwen3-8B tokenizer.
 
 Measure real chars/token ratio on existing corpus to calibrate token estimation.
-Current heuristic: len(text)/4 (English assumption). Kinyarwanda is agglutinative,
-so BPE likely over-splits → fewer chars/token → more tokens per character.
+Kinyarwanda is agglutinative, so BPE over-splits → fewer chars/token → more
+tokens per character than English.
 
 Usage:
     python scripts/gate_token_calibration.py [--max-docs-per-source 1000]
@@ -17,7 +17,7 @@ import orjson
 import zstandard as zstd
 
 from apps.common.logging import get_logger, setup_logging
-from apps.common.token_estimate import _TEXT_FIELDS
+from apps.common.token_estimate import _TEXT_FIELDS, CHARS_PER_TOKEN
 
 log = get_logger(__name__)
 
@@ -98,7 +98,7 @@ def main():
     parser.add_argument(
         "--max-docs-per-source", type=int, default=1000, help="Max docs per source"
     )
-    parser.add_argument("--tokenizer", default="Qwen/Qwen2.5-7B", help="HF tokenizer name")
+    parser.add_argument("--tokenizer", default="Qwen/Qwen3-8B", help="HF tokenizer name")
     args = parser.parse_args()
 
     setup_logging("INFO")
@@ -193,10 +193,10 @@ def main():
             "unk_rate": round(unk_rate, 6),
             "unk_rate_pct": f"{unk_rate * 100:.4f}%",
             "chars_per_token": _compute_stats(chars_per_token_ratios),
-            "old_estimate_tokens": int(total_chars / 4),
+            "current_estimate_tokens": int(total_chars / CHARS_PER_TOKEN),
             "real_tokens": total_tokens,
             "estimation_error_pct": (
-                f"{((total_chars / 4) - total_tokens) / total_tokens * 100:.1f}%"
+                f"{((total_chars / CHARS_PER_TOKEN) - total_tokens) / total_tokens * 100:.1f}%"
                 if total_tokens
                 else "N/A"
             ),
@@ -215,30 +215,29 @@ def main():
 
     report = {
         "gate": "G2",
-        "description": "Token calibration — measure real chars/token for Kinyarwanda on Qwen2.5",
+        "description": "Token calibration — measure real chars/token for Kinyarwanda",
         "tokenizer": args.tokenizer,
         "start_time": start_time,
         "end_time": time.time(),
         "elapsed_s": round(time.time() - start_time, 2),
         "global_chars_per_token": global_stats,
-        "current_constant": 4.0,
+        "current_constant": CHARS_PER_TOKEN,
         "recommended_constant": round(recommended_constant, 2),
         "estimation_direction": (
-            "UNDERESTIMATE (current len/4 produces fewer tokens than real)"
-            if recommended_constant < 4.0
-            else "OVERESTIMATE (current len/4 produces more tokens than real)"
+            f"UNDERESTIMATE (current len/{CHARS_PER_TOKEN} produces fewer tokens than real)"
+            if recommended_constant < CHARS_PER_TOKEN
+            else f"OVERESTIMATE (current len/{CHARS_PER_TOKEN} produces more tokens than real)"
         ),
         "per_source": per_source_results,
         "action_items": [
             (
                 "Update CHARS_PER_TOKEN in apps/common/token_estimate.py"
-                f" from 4.0 to {round(recommended_constant, 2)}"
+                f" from {CHARS_PER_TOKEN} to {round(recommended_constant, 2)}"
             ),
             (
-                "shard_writer.py:70 calls estimate_tokens_from_doc()"
+                "shard_writer.py calls estimate_tokens_from_doc()"
                 " — existing ShardMeta retains old estimates"
             ),
-            "validate_shards.py:42 also uses estimate (console only)",
             "Re-index existing shards after calibration",
         ],
     }
@@ -259,7 +258,7 @@ def main():
         global_stats.get("median", 0),
         global_stats.get("mean", 0),
     )
-    log.info("Current constant: 4.0 (English heuristic)")
+    log.info("Current constant: %.2f", CHARS_PER_TOKEN)
     log.info("Recommended constant: %.2f", recommended_constant)
     log.info("Direction: %s", report["estimation_direction"])
     for source, res in per_source_results.items():

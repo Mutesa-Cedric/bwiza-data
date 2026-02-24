@@ -17,6 +17,8 @@ log = get_logger(__name__)
 SOURCE_S3_PREFIX: dict[str, str] = {
     "commoncrawl": "bwiza/cc/v1/",
     "targeted_web": "bwiza/curated/v1/targeted_web/",
+    "wayback": "bwiza/curated/v1/wayback/",
+    "cc_index": "bwiza/curated/v1/cc_index/",
     "parallel_web": "bwiza/supervision/v1/parallel/",
     "instructions_rw": "bwiza/supervision/v1/instructions/",
     "wikipedia": "bwiza/wiki/v1/",

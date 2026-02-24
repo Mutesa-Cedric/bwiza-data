@@ -72,6 +72,14 @@ def test_dataset_for_source_instructions():
     assert dataset_for_source("instructions_rw") == "instructions"
 
 
+def test_dataset_for_source_wayback():
+    assert dataset_for_source("wayback") == "pretrain"
+
+
+def test_dataset_for_source_cc_index():
+    assert dataset_for_source("cc_index") == "pretrain"
+
+
 def test_dataset_for_source_unknown():
     import pytest
 
