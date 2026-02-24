@@ -8,9 +8,9 @@ filters:
   min_alpha_ratio: 0.70
   max_chars: 100000
   min_words: 30
-  max_word_ngram_rep_2: 0.20
-  max_word_ngram_rep_3: 0.18
-  max_word_ngram_rep_4: 0.16
+  max_word_ngram_rep_2: 0.30
+  max_word_ngram_rep_3: 0.25
+  max_word_ngram_rep_4: 0.20
   max_non_latin_alpha_ratio: 0.10
 
 sharding:

@@ -23,7 +23,7 @@ def test_load_default_config():
     assert cfg.filters.min_chars == 200
     assert cfg.filters.max_chars == 100_000
     assert cfg.filters.min_words == 30
-    assert cfg.filters.max_word_ngram_rep_2 == 0.20
+    assert cfg.filters.max_word_ngram_rep_2 == 0.30
     assert cfg.filters.max_non_latin_alpha_ratio == 0.10
     assert cfg.sharding.target_compressed_mb == 200
     assert cfg.logging.level == "INFO"
