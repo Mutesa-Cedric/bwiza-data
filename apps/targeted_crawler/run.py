@@ -31,6 +31,7 @@ from apps.targeted_crawler.safety import check_redirect_safety, is_safe_url
 from apps.targeted_crawler.seeds import (
     canonical_domain,
     domain_set_from_seeds,
+    extraction_mode_map_from_seeds,
     load_seeds,
     path_prefix_map_from_seeds,
 )
@@ -119,7 +120,10 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         per_domain_max_pages=tcfg.per_domain_max_pages,
         path_prefixes=path_prefix_map_from_seeds(seeds),
     )
-    frontier.add_seeds([url for url, _, _ in seeds])
+    frontier.add_seeds([s.start_url for s in seeds])
+
+    # Per-domain extraction mode (precision vs recall for trafilatura)
+    mode_map = extraction_mode_map_from_seeds(seeds)
 
     # Pre-populate frontier's seen set with done URLs
     for done_url in done_set:
@@ -247,7 +251,11 @@ def run_targeted_crawler(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                         min_text_ratio=tcfg.pdf_min_text_ratio,
                     )
                 else:
-                    extracted = extract_main_text(result.content, url=effective_url)
+                    url_domain = _domain_from_url(effective_url) or ""
+                    ext_mode = mode_map.get(url_domain, "recall")
+                    extracted = extract_main_text(
+                        result.content, url=effective_url, extraction_mode=ext_mode
+                    )
 
                 if extracted is None:
                     reason = (

@@ -96,7 +96,7 @@ def run_parallel_corpus(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
         max_pages=pcfg.max_pages,
         per_domain_max_pages=pcfg.per_domain_max_pages,
     )
-    frontier.add_seeds([url for url, _, _ in seeds])
+    frontier.add_seeds([s.start_url for s in seeds])
 
     # Pre-populate frontier's seen set with done URLs
     for done_url in done_set:

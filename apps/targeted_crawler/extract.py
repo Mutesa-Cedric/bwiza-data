@@ -45,8 +45,14 @@ def _strip_boilerplate_lines(text: str) -> str:
     return "\n".join(cleaned).strip()
 
 
-def extract_main_text(html_bytes: bytes, url: str = "") -> ExtractedDoc | None:
+def extract_main_text(
+    html_bytes: bytes, url: str = "", extraction_mode: str = "recall"
+) -> ExtractedDoc | None:
     """Extract main text content from HTML, removing boilerplate.
+
+    *extraction_mode* controls the trafilatura strategy:
+    ``"recall"`` (default) extracts more aggressively,
+    ``"precision"`` favours cleaner output for well-structured pages.
 
     Returns None if no meaningful text could be extracted.
     """
@@ -56,12 +62,14 @@ def extract_main_text(html_bytes: bytes, url: str = "") -> ExtractedDoc | None:
         log.debug("Failed to decode HTML from %s", url)
         return None
 
+    use_precision = extraction_mode == "precision"
     result: Any = trafilatura.bare_extraction(
         html_str,
         include_comments=False,
         include_tables=True,
         no_fallback=False,
-        favor_recall=True,
+        favor_recall=not use_precision,
+        favor_precision=use_precision,
         url=url or None,
     )
 

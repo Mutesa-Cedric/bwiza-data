@@ -1,21 +1,22 @@
 # Rwanda domains for targeted crawling
 # One domain or URL per line. Lines starting with # are ignored.
 # Entries with /path restrict crawling to that path prefix.
+# Optional trailing token: "precision" or "recall" (default: recall).
 
-# News & media
-umuseke.rw
-igihe.com
-ktpress.rw
-newtimes.co.rw
-kigalitoday.com
-inyarwanda.com
-isimbi.rw
-intyoza.com
-rba.co.rw
-imvahonshya.co.rw
-umuryango.rw
-flash.rw
-taarifa.rw
+# News & media (precision: well-structured HTML, cleaner extraction)
+umuseke.rw precision
+igihe.com precision
+ktpress.rw precision
+newtimes.co.rw precision
+kigalitoday.com precision
+inyarwanda.com precision
+isimbi.rw precision
+intyoza.com precision
+rba.co.rw precision
+imvahonshya.co.rw precision
+umuryango.rw precision
+flash.rw precision
+taarifa.rw precision
 
 # Government — ministries
 gov.rw

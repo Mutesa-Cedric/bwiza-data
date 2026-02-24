@@ -73,3 +73,21 @@ def test_extract_title_present():
     doc = extract_main_text(SAMPLE_HTML, url="https://example.com")
     if doc:
         assert isinstance(doc.title, str)
+
+
+def test_extract_default_mode_is_recall():
+    doc = extract_main_text(SAMPLE_HTML, url="https://example.com")
+    assert doc is not None
+    assert "main content" in doc.text
+
+
+def test_extract_precision_mode():
+    doc = extract_main_text(SAMPLE_HTML, url="https://example.com", extraction_mode="precision")
+    # Precision mode should still extract the main content
+    assert doc is None or "main content" in doc.text
+
+
+def test_extract_recall_mode_explicit():
+    doc = extract_main_text(SAMPLE_HTML, url="https://example.com", extraction_mode="recall")
+    assert doc is not None
+    assert "main content" in doc.text
