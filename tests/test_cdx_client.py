@@ -163,11 +163,32 @@ def test_query_cdx_filters_status(mock_get):
 
 
 @patch("apps.cc_index.cdx_client.requests.get")
+def test_query_cdx_json_num_pages(mock_get):
+    """CDX API may return JSON for showNumPages instead of bare int."""
+    cfg = CCIndexConfig(cdx_page_size=1, cdx_rate_limit_s=0)
+
+    num_pages_resp = MagicMock()
+    num_pages_resp.text = '{"pages": 1, "pageSize": 5, "blocks": 3}'
+    num_pages_resp.status_code = 200
+    num_pages_resp.raise_for_status = MagicMock()
+
+    page_resp = MagicMock()
+    page_resp.text = _cdx_ndjson_lines()
+    page_resp.status_code = 200
+    page_resp.raise_for_status = MagicMock()
+
+    mock_get.side_effect = [num_pages_resp, page_resp]
+
+    records = list(query_cdx("CC-MAIN-2025-51", "*.rw/*", cfg))
+    assert len(records) == 2
+
+
+@patch("apps.cc_index.cdx_client.requests.get")
 def test_query_cdx_handles_zero_pages(mock_get):
     cfg = CCIndexConfig(cdx_page_size=5, cdx_rate_limit_s=0)
 
     resp = MagicMock()
-    resp.text = "0"
+    resp.text = '{"pages": 0, "pageSize": 5, "blocks": 0}'
     resp.status_code = 200
     resp.raise_for_status = MagicMock()
     mock_get.return_value = resp

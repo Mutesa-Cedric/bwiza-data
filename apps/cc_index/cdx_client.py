@@ -115,8 +115,15 @@ def _get_num_pages(index_url: str, url_pattern: str, cfg: CCIndexConfig) -> int:
                 time.sleep(wait)
                 continue
             resp.raise_for_status()
-            return int(resp.text.strip())
-        except (requests.RequestException, ValueError) as exc:
+            text = resp.text.strip()
+            # CC CDX returns either a bare integer or JSON like
+            # {"pages": 8, "pageSize": 5, "blocks": 38}
+            try:
+                return int(text)
+            except ValueError:
+                data = json.loads(text)
+                return int(data.get("pages", 0))
+        except (requests.RequestException, ValueError, json.JSONDecodeError) as exc:
             if attempt == cfg.cdx_max_retries - 1:
                 log.error("CDX page count failed for %s: %s", url_pattern, exc)
                 return 0
