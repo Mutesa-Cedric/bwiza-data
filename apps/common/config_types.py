@@ -155,12 +155,12 @@ class CCIndexConfig:
     max_crawls: int = 50
     domain_queries: list[str] = field(default_factory=lambda: ["*.rw/*"])
     extra_domain_queries: list[str] = field(default_factory=list)
-    cdx_page_size: int = 5
+    cdx_page_size: int = 50
     cdx_timeout_s: int = 30
     cdx_max_retries: int = 3
     cdx_retry_backoff_s: int = 2
     cdx_rate_limit_s: float = 0.5
-    warc_concurrency: int = 8
+    warc_concurrency: int = 16
     warc_timeout_s: int = 30
     warc_max_retries: int = 3
     warc_retry_backoff_s: int = 2

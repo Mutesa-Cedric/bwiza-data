@@ -124,12 +124,12 @@ cc_index:
     - "*.umuseke.rw/*"
     - "*.ktpress.rw/*"
     - "*.newtimes.co.rw/*"
-  cdx_page_size: 5
+  cdx_page_size: 50
   cdx_timeout_s: 30
   cdx_max_retries: 3
   cdx_retry_backoff_s: 2
   cdx_rate_limit_s: 0.5
-  warc_concurrency: 8
+  warc_concurrency: 16
   warc_timeout_s: 30
   warc_max_retries: 3
   warc_retry_backoff_s: 2
