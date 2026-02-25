@@ -77,15 +77,15 @@ class LoggingConfig:
 class TargetedConfig:
     enabled: bool = False
     seeds_file: str = "configs/targeted_domains.txt"
-    max_pages: int = 20000
+    max_pages: int = 50000
     per_domain_max_pages: int = 5000
-    concurrency: int = 8
-    request_timeout_s: int = 30
+    concurrency: int = 24
+    request_timeout_s: int = 15
     max_retries: int = 5
     retry_backoff_s: int = 2
     user_agent: str = "bwiza-data/0.1"
     obey_robots_txt: bool = True
-    crawl_delay_s: float = 1.0
+    crawl_delay_s: float = 0.5
     max_response_bytes: int = 8_000_000
     allowed_content_types: list[str] = field(
         default_factory=lambda: ["text/html", "application/pdf"]

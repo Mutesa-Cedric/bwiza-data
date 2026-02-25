@@ -104,9 +104,9 @@ def test_s3_disabled_no_bucket_ok():
 def test_targeted_defaults_loaded():
     cfg = load_config("configs/default.yaml")
     assert cfg.targeted.enabled is False
-    assert cfg.targeted.max_pages == 20000
+    assert cfg.targeted.max_pages == 50000
     assert cfg.targeted.per_domain_max_pages == 5000
-    assert cfg.targeted.crawl_delay_s == 1.0
+    assert cfg.targeted.crawl_delay_s == 0.5
     assert cfg.targeted.output_source == "targeted_web"
     assert cfg.targeted.allowed_content_types == ["text/html", "application/pdf"]
     assert cfg.targeted.pdf_max_pages == 500
