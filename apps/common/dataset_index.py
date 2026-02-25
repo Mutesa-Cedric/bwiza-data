@@ -17,6 +17,7 @@ SOURCE_TO_DATASET: dict[str, str] = {
     "kinnews": "pretrain",
     "wayback": "pretrain",
     "cc_index": "pretrain",
+    "cc_lang": "pretrain",
     "parallel_web": "parallel",
     "instructions_rw": "instructions",
 }
