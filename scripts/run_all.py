@@ -4,6 +4,12 @@
 Designed for long-running VPS execution. Run with:
     nohup python scripts/run_all.py > logs/run_all.log 2>&1 &
 
+Resumable — if interrupted, re-run the same command and each crawler
+picks up where it left off (via --resume with its last run_id).
+
+Check progress while running:
+    python scripts/check_progress.py
+
 Strategy (ordered by expected yield):
   Tier 1: CC Language Index — scans CC Parquet index for content_languages='kin'
            Catches Kinyarwanda on ANY domain worldwide (jw.org, bible.com, etc.)
@@ -19,6 +25,7 @@ After crawling, runs: index → dedup → enrich → split → export.
 """
 
 import argparse
+import json
 import logging
 import subprocess
 import sys
@@ -27,6 +34,7 @@ from datetime import datetime
 from pathlib import Path
 
 LOG_FMT = "[%(asctime)s] %(levelname)s %(message)s"
+STATE_DIR = Path("manifests/state")
 
 
 def _setup_logging(log_dir: Path) -> logging.Logger:
@@ -42,6 +50,28 @@ def _setup_logging(log_dir: Path) -> logging.Logger:
     fh.setFormatter(logging.Formatter(LOG_FMT, datefmt="%Y-%m-%d %H:%M:%S"))
     logger.addHandler(fh)
     return logger
+
+
+def _find_resumable_run(pipeline: str) -> str:
+    """Find the most recent running/paused run_id for a pipeline."""
+    if not STATE_DIR.exists():
+        return ""
+    best_id = ""
+    best_time = ""
+    for f in STATE_DIR.glob("*.json"):
+        try:
+            state = json.loads(f.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+        if state.get("pipeline") != pipeline:
+            continue
+        if state.get("status") not in ("running", "paused"):
+            continue
+        updated = state.get("updated_at", "")
+        if updated > best_time:
+            best_time = updated
+            best_id = state.get("run_id", "")
+    return best_id
 
 
 def _run(
@@ -137,6 +167,7 @@ def main() -> int:
     logger.info("=" * 60)
     logger.info("BWIZA-DATA FULL PIPELINE")
     logger.info("=" * 60)
+    logger.info("Check progress: python scripts/check_progress.py")
     start = time.time()
 
     # ── STAGE 1: CRAWL ──────────────────────────────────────
@@ -145,31 +176,53 @@ def main() -> int:
         logger.info("STAGE 1: DATA COLLECTION")
         logger.info("-" * 40)
 
+        # Check for resumable runs
+        cc_lang_resume = _find_resumable_run("cc_lang")
+        cc_index_resume = _find_resumable_run("cc_index")
+        targeted_resume = _find_resumable_run("targeted_crawler")
+
+        if cc_lang_resume:
+            logger.info("  Resuming CC lang run: %s", cc_lang_resume)
+        if cc_index_resume:
+            logger.info("  Resuming CC index run: %s", cc_index_resume)
+        if targeted_resume:
+            logger.info("  Resuming targeted run: %s", targeted_resume)
+
+        # Build commands with --resume flags where applicable
+        cc_lang_cmd = [
+            py,
+            "scripts/run_cc_lang.py",
+            "--lang",
+            "kin",
+            "--max-crawls",
+            str(args.cc_lang_crawls),
+        ]
+        if cc_lang_resume:
+            cc_lang_cmd.extend(["--resume", cc_lang_resume])
+
+        cc_index_cmd = [py, "scripts/run_cc_index.py"]
+        if cc_index_resume:
+            cc_index_cmd.extend(["--resume", cc_index_resume])
+
+        targeted_cmd = [py, "scripts/run_targeted_crawler.py"]
+        if targeted_resume:
+            targeted_cmd.extend(["--resume", targeted_resume])
+
         crawl_tasks = [
-            # Tier 1: CC Language Index (highest yield — global Kinyarwanda)
             (
-                [
-                    py,
-                    "scripts/run_cc_lang.py",
-                    "--lang",
-                    "kin",
-                    "--max-crawls",
-                    str(args.cc_lang_crawls),
-                ],
+                cc_lang_cmd,
                 log_dir / "cc_lang.log",
                 "CC Language Index (Tier 1)",
                 args.crawl_timeout,
             ),
-            # Tier 2: CC CDX Index (.rw domains + news sites)
             (
-                [py, "scripts/run_cc_index.py"],
+                cc_index_cmd,
                 log_dir / "cc_index.log",
                 "CC CDX Index (Tier 2)",
                 args.crawl_timeout,
             ),
-            # Tier 3: Targeted Crawler (live .rw web)
             (
-                [py, "scripts/run_targeted_crawler.py"],
+                targeted_cmd,
                 log_dir / "targeted.log",
                 "Targeted Crawler (Tier 3)",
                 args.crawl_timeout,
