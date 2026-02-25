@@ -150,9 +150,9 @@ class CCIndexConfig:
     enabled: bool = False
     crawls: list[str] = field(default_factory=list)
     discover_crawls: bool = True
-    min_crawl_date: str = "2024-01"
+    min_crawl_date: str = "2013-01"
     max_crawl_date: str = ""
-    max_crawls: int = 6
+    max_crawls: int = 50
     domain_queries: list[str] = field(default_factory=lambda: ["*.rw/*"])
     extra_domain_queries: list[str] = field(default_factory=list)
     cdx_page_size: int = 5

@@ -112,15 +112,18 @@ cc_index:
   enabled: false
   crawls: []
   discover_crawls: true
-  min_crawl_date: "2024-01"
+  min_crawl_date: "2013-01"
   max_crawl_date: ""
-  max_crawls: 6
+  max_crawls: 50
   domain_queries: ["*.rw/*"]
   extra_domain_queries:
     - "*.igihe.com/*"
     - "*.inyarwanda.com/*"
     - "*.kigalitoday.com/*"
     - "*.intyoza.com/*"
+    - "*.umuseke.rw/*"
+    - "*.ktpress.rw/*"
+    - "*.newtimes.co.rw/*"
   cdx_page_size: 5
   cdx_timeout_s: 30
   cdx_max_retries: 3
@@ -156,7 +159,7 @@ wayback:
   fetch_rate_limit_s: 2.0
   fetch_max_retries: 5
   fetch_retry_backoff_s: 5
-  max_records: 0
+  max_records: 5000
   output_source: "wayback"
   user_agent: "bwiza-data/0.1 (kinyarwanda-corpus)"
   status_filter: ["200"]
