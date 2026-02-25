@@ -117,6 +117,7 @@ cc_index:
   max_crawls: 50
   domain_queries: ["*.rw/*"]
   extra_domain_queries:
+    # News
     - "*.igihe.com/*"
     - "*.inyarwanda.com/*"
     - "*.kigalitoday.com/*"
@@ -124,6 +125,15 @@ cc_index:
     - "*.umuseke.rw/*"
     - "*.ktpress.rw/*"
     - "*.newtimes.co.rw/*"
+    # Government & education (subdomains CDX may miss under *.rw/*)
+    - "*.gov.rw/*"
+    - "*.ac.rw/*"
+    # Religious — known high-quality Kinyarwanda content outside .rw
+    - "jw.org/rw/*"
+    - "bible.com/languages/kin/*"
+    # International orgs — Kinyarwanda sections
+    - "who.int/rw/*"
+    - "unicef.org/rwanda/*"
   cdx_page_size: 50
   cdx_timeout_s: 30
   cdx_max_retries: 3
