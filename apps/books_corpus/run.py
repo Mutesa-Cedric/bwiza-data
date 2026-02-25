@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from apps.books_corpus.lang_split import extract_lang_sections
 from apps.books_corpus.pipeline import process_book_doc
 from apps.books_corpus.seeds import BookSeed, domain_for_seed, load_book_seeds
 from apps.cc_miner.stats import RunStats
@@ -14,6 +15,7 @@ from apps.common.dedup_factory import create_dedup
 from apps.common.filters.base import clear_registry
 from apps.common.filters.quality import register_quality_filters
 from apps.common.guardrails import GuardrailChecker
+from apps.common.lid import predict_lang
 from apps.common.logging import get_logger
 from apps.common.manifest import append_manifest_entry
 from apps.common.run_state import RunState
@@ -23,7 +25,7 @@ from apps.common.s3_paths import shard_key
 from apps.common.s3_upload import upload_file, verify_upload
 from apps.common.shard_writer import ShardWriter
 from apps.common.url_utils import get_domain
-from apps.targeted_crawler.extract import extract_main_text
+from apps.targeted_crawler.extract import ExtractedDoc, extract_main_text
 from apps.targeted_crawler.fetch import fetch_url
 from apps.targeted_crawler.pdf import extract_pdf_text
 from apps.targeted_crawler.rate_limit import DomainRateLimiter
@@ -193,6 +195,17 @@ def run_books_corpus(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                     stats.reject_reasons[reason] += 1
                     mark_done(run_id, seed.url)
                     continue
+
+                # For multilingual docs (gazettes, bilingual reports),
+                # try extracting only Kinyarwanda sections when full-text
+                # LID would reject the document.
+                if len(extracted.text) >= 500:
+                    lid_lang, lid_conf, _ = predict_lang(extracted.text)
+                    if lid_lang not in ("kin_Latn", "rw") or lid_conf < cfg.lid.min_confidence:
+                        kin_text = extract_lang_sections(extracted.text)
+                        if kin_text is not None:
+                            extracted = ExtractedDoc(title=extracted.title, text=kin_text)
+                            stats.reject_reasons["info.lang_split_applied"] += 1
 
                 doc, decision = process_book_doc(
                     extracted,
