@@ -164,6 +164,7 @@ class CCIndexConfig:
     warc_timeout_s: int = 30
     warc_max_retries: int = 3
     warc_retry_backoff_s: int = 2
+    warc_rate_limit_s: float = 0.05
     max_records: int = 0
     output_source: str = "cc_index"
     user_agent: str = "bwiza-data/0.1"

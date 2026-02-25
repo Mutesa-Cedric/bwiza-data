@@ -133,6 +133,7 @@ cc_index:
   warc_timeout_s: 30
   warc_max_retries: 3
   warc_retry_backoff_s: 2
+  warc_rate_limit_s: 0.05
   max_records: 0
   output_source: "cc_index"
   user_agent: "bwiza-data/0.1"

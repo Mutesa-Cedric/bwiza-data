@@ -40,6 +40,8 @@ def fetch_warc_record(
     }
 
     for attempt in range(cfg.warc_max_retries):
+        if attempt == 0 and cfg.warc_rate_limit_s > 0:
+            time.sleep(cfg.warc_rate_limit_s)
         try:
             resp = requests.get(url, headers=headers, timeout=cfg.warc_timeout_s)
             if resp.status_code in (200, 206):
