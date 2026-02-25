@@ -13,6 +13,7 @@ dependencies = [
     "huggingface_hub>=0.20",
     "trafilatura>=1.6",
     "datasketch>=1.6",
+    "duckdb>=1.0",
     "mwparserfromhell>=0.6",
     "datasets>=2.16,<4",
     "pymupdf>=1.24",

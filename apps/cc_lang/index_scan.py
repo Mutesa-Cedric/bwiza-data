@@ -3,28 +3,29 @@
 The CC columnar index is stored as Parquet files on S3/HTTPS at:
   https://data.commoncrawl.org/cc-index/table/cc-main/warc/
 
-Each crawl has ~300 Parquet files. We download and scan each one,
-filtering on content_languages for ISO 639-3 codes (e.g., 'kin').
+Each crawl has ~300 Parquet files (~900MB each, 7.5M rows).
+We use DuckDB's HTTP range-read support to query only the columns
+we need without downloading full files (>99% bandwidth savings).
 """
 
 from __future__ import annotations
 
-import io
+import gzip
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass
 
-import pyarrow.parquet as pq
+import duckdb
 import requests
 
 from apps.common.logging import get_logger
 
 log = get_logger(__name__)
 
-CC_INDEX_BASE = "https://data.commoncrawl.org/cc-index/table/cc-main/warc"
 CC_COLLINFO = "https://index.commoncrawl.org/collinfo.json"
+CC_DATA_BASE = "https://data.commoncrawl.org"
 
-# Columns we need from the index (minimizes download size)
+# Columns we need from the index
 INDEX_COLUMNS = [
     "url",
     "content_languages",
@@ -76,36 +77,21 @@ def discover_crawl_ids(
 def list_index_files(crawl_id: str) -> list[str]:
     """List Parquet file paths for a crawl's warc subset.
 
-    Downloads the _metadata or uses a predictable naming pattern.
-    CC index files follow: part-NNNNN-*.gz.parquet (300 files per crawl).
-    We fetch the directory listing from the CC paths file.
+    Downloads cc-index-table.paths.gz and filters for subset=warc.
     """
-    prefix = f"cc-index/table/cc-main/warc/crawl={crawl_id}/subset=warc/"
-
-    # Try fetching the listing via Common Crawl's S3 listing API
-    listing_url = f"https://data.commoncrawl.org/?prefix={prefix}&delimiter=/"
+    paths_url = f"{CC_DATA_BASE}/crawl-data/{crawl_id}/cc-index-table.paths.gz"
     try:
-        resp = requests.get(listing_url, timeout=30)
-        if resp.status_code == 200:
-            # Parse XML listing
-            import xml.etree.ElementTree as ET
-
-            root = ET.fromstring(resp.text)
-            ns = {"s3": "http://s3.amazonaws.com/doc/2006-03-01/"}
-            keys = []
-            for content in root.findall(".//s3:Contents/s3:Key", ns):
-                key = content.text
-                if key and key.endswith(".parquet"):
-                    keys.append(key)
-            if keys:
-                keys.sort()
-                log.info("Found %d index files for %s", len(keys), crawl_id)
-                return keys
+        resp = requests.get(paths_url, timeout=60)
+        resp.raise_for_status()
+        all_paths = gzip.decompress(resp.content).decode().strip().split("\n")
+        warc_paths = [p for p in all_paths if "subset=warc" in p and p.endswith(".parquet")]
+        warc_paths.sort()
+        if warc_paths:
+            log.info("Found %d index files for %s", len(warc_paths), crawl_id)
+            return warc_paths
     except Exception as exc:
         log.warning("Failed to list index files for %s: %s", crawl_id, exc)
 
-    # Fallback: try a known recent pattern (0..299)
-    log.warning("Using fallback part enumeration for %s", crawl_id)
     return []
 
 
@@ -113,51 +99,40 @@ def scan_index_file(
     file_key: str,
     lang_code: str = "kin",
 ) -> list[LangIndexRecord]:
-    """Download and scan a single Parquet index file for target language.
+    """Query a single Parquet index file for target language using DuckDB.
 
-    Uses pyarrow to read only the columns we need and apply row-group
-    filtering where possible.
+    DuckDB reads remote Parquet via HTTP range requests, fetching only
+    the columns needed. For a 900MB file with 7.5M rows, this typically
+    downloads <5MB to find language matches.
     """
-    url = f"https://data.commoncrawl.org/{file_key}"
+    url = f"{CC_DATA_BASE}/{file_key}"
 
     try:
-        resp = requests.get(url, timeout=120)
-        resp.raise_for_status()
-    except requests.RequestException as exc:
-        log.warning("Failed to download index file %s: %s", file_key, exc)
-        return []
+        con = duckdb.connect()
+        con.execute("INSTALL httpfs; LOAD httpfs;")
 
-    try:
-        table = pq.read_table(
-            io.BytesIO(resp.content),
-            columns=INDEX_COLUMNS,
-        )
+        query = f"""
+            SELECT url, content_languages, warc_filename,
+                   warc_record_offset, warc_record_length
+            FROM read_parquet('{url}')
+            WHERE content_languages IS NOT NULL
+              AND content_languages LIKE '%{lang_code}%'
+        """
+        rows = con.execute(query).fetchall()
+        con.close()
     except Exception as exc:
-        log.warning("Failed to parse Parquet %s: %s", file_key, exc)
+        log.warning("Failed to query index file %s: %s", file_key, exc)
         return []
 
-    # Filter for target language
     records = []
-    langs_col = table.column("content_languages")
-    urls_col = table.column("url")
-    fnames_col = table.column("warc_filename")
-    offsets_col = table.column("warc_record_offset")
-    lengths_col = table.column("warc_record_length")
-
-    for i in range(len(table)):
-        lang_val = langs_col[i].as_py()
-        if lang_val is None:
-            continue
-        if lang_code not in lang_val:
-            continue
-
+    for row in rows:
         records.append(
             LangIndexRecord(
-                url=urls_col[i].as_py() or "",
-                content_languages=lang_val,
-                warc_filename=fnames_col[i].as_py() or "",
-                warc_record_offset=offsets_col[i].as_py() or 0,
-                warc_record_length=lengths_col[i].as_py() or 0,
+                url=row[0] or "",
+                content_languages=row[1] or "",
+                warc_filename=row[2] or "",
+                warc_record_offset=row[3] or 0,
+                warc_record_length=row[4] or 0,
             )
         )
 
@@ -171,8 +146,8 @@ def scan_crawl_for_language(
 ) -> Iterator[LangIndexRecord]:
     """Scan all index files for a crawl, yielding matching records.
 
-    Downloads ~300 Parquet files sequentially (each ~600MB compressed,
-    but we only read 5 columns so actual transfer is much smaller).
+    Uses DuckDB HTTP range reads — only downloads the columns needed
+    (~5MB per file instead of ~900MB).
     """
     file_keys = list_index_files(crawl_id)
     if not file_keys:

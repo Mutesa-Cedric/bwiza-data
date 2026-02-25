@@ -1,10 +1,7 @@
 """Tests for CC language-index scanner."""
 
-import io
+import gzip
 from unittest.mock import MagicMock, patch
-
-import pyarrow as pa
-import pyarrow.parquet as pq
 
 from apps.cc_lang.index_scan import (
     LangIndexRecord,
@@ -13,55 +10,6 @@ from apps.cc_lang.index_scan import (
     scan_crawl_for_language,
     scan_index_file,
 )
-
-
-def _make_parquet_bytes(rows: list[dict]) -> bytes:
-    """Build a Parquet file in memory from a list of row dicts."""
-    table = pa.table(
-        {
-            "url": [r["url"] for r in rows],
-            "content_languages": [r.get("content_languages") for r in rows],
-            "warc_filename": [r["warc_filename"] for r in rows],
-            "warc_record_offset": [r["warc_record_offset"] for r in rows],
-            "warc_record_length": [r["warc_record_length"] for r in rows],
-        }
-    )
-    buf = io.BytesIO()
-    pq.write_table(table, buf)
-    return buf.getvalue()
-
-
-SAMPLE_ROWS = [
-    {
-        "url": "https://jw.org/kin/article1",
-        "content_languages": "kin",
-        "warc_filename": "crawl-data/CC-MAIN-2024-51/warc/file1.warc.gz",
-        "warc_record_offset": 1000,
-        "warc_record_length": 5000,
-    },
-    {
-        "url": "https://example.com/english-page",
-        "content_languages": "eng",
-        "warc_filename": "crawl-data/CC-MAIN-2024-51/warc/file2.warc.gz",
-        "warc_record_offset": 2000,
-        "warc_record_length": 3000,
-    },
-    {
-        "url": "https://bible.com/kin/verse",
-        "content_languages": "kin,eng",
-        "warc_filename": "crawl-data/CC-MAIN-2024-51/warc/file3.warc.gz",
-        "warc_record_offset": 3000,
-        "warc_record_length": 4000,
-    },
-    {
-        "url": "https://nulllang.example.com/page",
-        "content_languages": None,
-        "warc_filename": "crawl-data/CC-MAIN-2024-51/warc/file4.warc.gz",
-        "warc_record_offset": 4000,
-        "warc_record_length": 2000,
-    },
-]
-
 
 # --- discover_crawl_ids ---
 
@@ -136,27 +84,23 @@ def test_discover_crawl_ids_skips_non_main(mock_get):
 
 
 @patch("apps.cc_lang.index_scan.requests.get")
-def test_list_index_files_parses_s3_listing(mock_get):
-    xml_body = """<?xml version="1.0" encoding="UTF-8"?>
-    <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-      <Contents>
-        <Key>cc-index/table/cc-main/warc/crawl=CC-MAIN-2024-51/subset=warc/part-00000.gz.parquet</Key>
-      </Contents>
-      <Contents>
-        <Key>cc-index/table/cc-main/warc/crawl=CC-MAIN-2024-51/subset=warc/part-00001.gz.parquet</Key>
-      </Contents>
-      <Contents>
-        <Key>cc-index/table/cc-main/warc/crawl=CC-MAIN-2024-51/subset=warc/_metadata</Key>
-      </Contents>
-    </ListBucketResult>"""
-
+def test_list_index_files_from_paths_gz(mock_get):
+    paths_content = "\n".join(
+        [
+            "cc-index/table/cc-main/warc/crawl=CC-MAIN-2024-51/subset=crawldiagnostics/part-00000.parquet",
+            "cc-index/table/cc-main/warc/crawl=CC-MAIN-2024-51/subset=warc/part-00000-abc.gz.parquet",
+            "cc-index/table/cc-main/warc/crawl=CC-MAIN-2024-51/subset=warc/part-00001-abc.gz.parquet",
+            "cc-index/table/cc-main/warc/crawl=CC-MAIN-2024-51/subset=warc/_metadata",
+        ]
+    )
     mock_resp = MagicMock()
-    mock_resp.status_code = 200
-    mock_resp.text = xml_body
+    mock_resp.content = gzip.compress(paths_content.encode())
+    mock_resp.raise_for_status = MagicMock()
     mock_get.return_value = mock_resp
 
     keys = list_index_files("CC-MAIN-2024-51")
     assert len(keys) == 2
+    assert all("subset=warc" in k for k in keys)
     assert all(k.endswith(".parquet") for k in keys)
     assert keys[0] < keys[1]  # sorted
 
@@ -171,93 +115,58 @@ def test_list_index_files_returns_empty_on_failure(mock_get):
 # --- scan_index_file ---
 
 
-@patch("apps.cc_lang.index_scan.requests.get")
-def test_scan_index_file_filters_language(mock_get):
-    parquet_data = _make_parquet_bytes(SAMPLE_ROWS)
-    mock_resp = MagicMock()
-    mock_resp.content = parquet_data
-    mock_resp.raise_for_status = MagicMock()
-    mock_get.return_value = mock_resp
+@patch("apps.cc_lang.index_scan.duckdb.connect")
+def test_scan_index_file_returns_records(mock_connect):
+    mock_con = MagicMock()
+    mock_connect.return_value = mock_con
+    mock_con.execute.return_value = mock_con
+    mock_con.fetchall.return_value = [
+        ("https://jw.org/kin/article1", "kin", "warc/file1.warc.gz", 1000, 5000),
+        ("https://bible.com/kin/verse", "kin,eng", "warc/file2.warc.gz", 2000, 3000),
+    ]
 
     records = scan_index_file("some/path/part-00000.parquet", lang_code="kin")
-
-    # Should match rows with "kin" in content_languages (rows 0 and 2)
     assert len(records) == 2
     assert records[0].url == "https://jw.org/kin/article1"
     assert records[0].content_languages == "kin"
-    assert records[1].url == "https://bible.com/kin/verse"
+    assert records[0].warc_filename == "warc/file1.warc.gz"
+    assert records[0].warc_record_offset == 1000
+    assert records[0].warc_record_length == 5000
     assert records[1].content_languages == "kin,eng"
 
 
-@patch("apps.cc_lang.index_scan.requests.get")
-def test_scan_index_file_no_matches(mock_get):
-    parquet_data = _make_parquet_bytes(SAMPLE_ROWS)
-    mock_resp = MagicMock()
-    mock_resp.content = parquet_data
-    mock_resp.raise_for_status = MagicMock()
-    mock_get.return_value = mock_resp
+@patch("apps.cc_lang.index_scan.duckdb.connect")
+def test_scan_index_file_no_matches(mock_connect):
+    mock_con = MagicMock()
+    mock_connect.return_value = mock_con
+    mock_con.execute.return_value = mock_con
+    mock_con.fetchall.return_value = []
 
     records = scan_index_file("some/path.parquet", lang_code="fra")
     assert len(records) == 0
 
 
-@patch("apps.cc_lang.index_scan.requests.get")
-def test_scan_index_file_handles_null_languages(mock_get):
-    """Rows with None content_languages should be skipped, not crash."""
-    rows = [
-        {
-            "url": "https://example.com/null",
-            "content_languages": None,
-            "warc_filename": "w.warc.gz",
-            "warc_record_offset": 0,
-            "warc_record_length": 100,
-        },
+@patch("apps.cc_lang.index_scan.duckdb.connect")
+def test_scan_index_file_handles_error(mock_connect):
+    mock_connect.side_effect = Exception("connection failed")
+    records = scan_index_file("some/path.parquet", lang_code="kin")
+    assert records == []
+
+
+@patch("apps.cc_lang.index_scan.duckdb.connect")
+def test_scan_index_file_handles_null_fields(mock_connect):
+    mock_con = MagicMock()
+    mock_connect.return_value = mock_con
+    mock_con.execute.return_value = mock_con
+    mock_con.fetchall.return_value = [
+        (None, "kin", None, None, None),
     ]
-    parquet_data = _make_parquet_bytes(rows)
-    mock_resp = MagicMock()
-    mock_resp.content = parquet_data
-    mock_resp.raise_for_status = MagicMock()
-    mock_get.return_value = mock_resp
-
-    records = scan_index_file("some/path.parquet", lang_code="kin")
-    assert records == []
-
-
-@patch("apps.cc_lang.index_scan.requests.get")
-def test_scan_index_file_returns_empty_on_http_error(mock_get):
-    import requests as req
-
-    mock_get.side_effect = req.RequestException("timeout")
-    records = scan_index_file("some/path.parquet", lang_code="kin")
-    assert records == []
-
-
-@patch("apps.cc_lang.index_scan.requests.get")
-def test_scan_index_file_returns_empty_on_bad_parquet(mock_get):
-    mock_resp = MagicMock()
-    mock_resp.content = b"not a parquet file"
-    mock_resp.raise_for_status = MagicMock()
-    mock_get.return_value = mock_resp
-
-    records = scan_index_file("some/path.parquet", lang_code="kin")
-    assert records == []
-
-
-@patch("apps.cc_lang.index_scan.requests.get")
-def test_scan_index_file_warc_fields(mock_get):
-    """Verify WARC metadata fields are correctly extracted."""
-    parquet_data = _make_parquet_bytes(SAMPLE_ROWS[:1])
-    mock_resp = MagicMock()
-    mock_resp.content = parquet_data
-    mock_resp.raise_for_status = MagicMock()
-    mock_get.return_value = mock_resp
 
     records = scan_index_file("some/path.parquet", lang_code="kin")
     assert len(records) == 1
-    rec = records[0]
-    assert rec.warc_filename == "crawl-data/CC-MAIN-2024-51/warc/file1.warc.gz"
-    assert rec.warc_record_offset == 1000
-    assert rec.warc_record_length == 5000
+    assert records[0].url == ""
+    assert records[0].warc_filename == ""
+    assert records[0].warc_record_offset == 0
 
 
 # --- scan_crawl_for_language ---
