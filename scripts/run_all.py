@@ -15,9 +15,6 @@ Strategy (ordered by expected yield):
 
   Tier 3: Targeted Crawler — live web crawl of 105 .rw domains.
 
-  Tier 4: Wayback Machine — capped supplement (5K records max).
-           Rate-limited by archive.org, so only for gap-filling.
-
 After crawling, runs: index → dedup → enrich → split → export.
 """
 
@@ -175,13 +172,6 @@ def main() -> int:
                 [py, "scripts/run_targeted_crawler.py"],
                 log_dir / "targeted.log",
                 "Targeted Crawler (Tier 3)",
-                args.crawl_timeout,
-            ),
-            # Tier 4: Wayback (supplement, capped)
-            (
-                [py, "scripts/run_wayback_miner.py"],
-                log_dir / "wayback.log",
-                "Wayback (Tier 4, capped)",
                 args.crawl_timeout,
             ),
         ]
