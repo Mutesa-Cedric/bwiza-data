@@ -37,3 +37,5 @@ manifests/state/
 
 # Docs (private plans, not for remote)
 docs/
+configs/jw_kinyarwanda_catalog.json
+configs/jw_kinyarwanda_catalog.csv
