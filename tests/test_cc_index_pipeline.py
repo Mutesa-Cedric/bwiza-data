@@ -2,19 +2,32 @@
 
 from unittest.mock import patch
 
+import pytest
+
 from apps.cc_index.pipeline import process_warc_html
 from apps.common.config_types import AppConfig
 from apps.common.dedup_exact import ExactDedupStore
+from apps.common.filters.base import clear_registry
+from apps.common.filters.quality import register_quality_filters
+
+
+@pytest.fixture(autouse=True)
+def _ensure_filters():
+    """Ensure quality filters are registered regardless of test ordering."""
+    clear_registry()
+    register_quality_filters()
+
 
 SAMPLE_HTML = (
     b"<html><body><main><p>"
     b"Mu Rwanda, uburezi ni ingenzi cyane ku iterambere ry'igihugu. "
     b"Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye. "
-    b"Guverinoma y'u Rwanda yashyizeho politiki zitandukanye zo guteza "
-    b"imbere uburezi mu gihugu hose. Ibi birimo gushyiraho amashuri "
-    b"mashya no guteza imbere ikoranabuhanga mu burezi. "
-    b"Mu Rwanda, uburezi ni ingenzi cyane ku iterambere ry'igihugu. "
-    b"Abanyarwanda bose bagomba kubona uburezi bwiza kandi bukwiye."
+    b"Guverinoma yashyizeho politiki zitandukanye zo guteza imbere "
+    b"uburezi mu gihugu hose. Ibi birimo gushyiraho amashuri mashya "
+    b"no guteza imbere ikoranabuhanga mu mashuri. Abarimu bakora "
+    b"umurimo ukomeye wo kwigisha abana amasomo yose akenewe. "
+    b"Ababyeyi nabo bafasha abana babo kwiga mu rugo. Igihugu "
+    b"cyose kigomba gufatanya kugira ngo uburezi burusheho kuba bwiza."
     b"</p></main></body></html>"
 )
 

@@ -176,6 +176,28 @@ wayback:
   status_filter: ["200"]
   mime_filter: ["text/html"]
 
+books:
+  enabled: false
+  seeds_file: "configs/books_sources.txt"
+  concurrency: 8
+  request_timeout_s: 60
+  max_retries: 5
+  retry_backoff_s: 2
+  domain_delay_s: 0.25
+  user_agent: "bwiza-data/0.1 (books-corpus)"
+  max_response_bytes: 50000000
+  allowed_content_types: ["text/html", "application/pdf"]
+  output_source: "books_corpus"
+  min_lid_confidence: 0.70
+  extract_mode: "precision"
+  pdf_max_pages: 800
+  pdf_min_text_ratio: 0.08
+  s3_prefix: "bwiza/curated/v1/books/"
+  max_chars: 1000000
+  max_word_ngram_rep_2: 0.50
+  max_word_ngram_rep_3: 0.40
+  max_word_ngram_rep_4: 0.35
+
 dedup:
   store_path: "outputs/dedup_store.db"
   fuzzy_threshold: 0.8

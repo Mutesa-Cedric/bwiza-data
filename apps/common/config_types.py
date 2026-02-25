@@ -204,6 +204,33 @@ class WaybackConfig:
 
 
 @dataclass
+class BooksConfig:
+    enabled: bool = False
+    seeds_file: str = "configs/books_sources.txt"
+    concurrency: int = 8
+    request_timeout_s: int = 60
+    max_retries: int = 5
+    retry_backoff_s: int = 2
+    domain_delay_s: float = 0.25
+    user_agent: str = "bwiza-data/0.1 (books-corpus)"
+    max_response_bytes: int = 50_000_000
+    allowed_content_types: list[str] = field(
+        default_factory=lambda: ["text/html", "application/pdf"]
+    )
+    output_source: str = "books_corpus"
+    min_lid_confidence: float = 0.70
+    extract_mode: str = "precision"
+    pdf_max_pages: int = 800
+    pdf_min_text_ratio: float = 0.08
+    s3_prefix: str = "bwiza/curated/v1/books/"
+    # Book-specific filter overrides (0 = use global default)
+    max_chars: int = 1_000_000
+    max_word_ngram_rep_2: float = 0.50
+    max_word_ngram_rep_3: float = 0.40
+    max_word_ngram_rep_4: float = 0.35
+
+
+@dataclass
 class DedupConfig:
     store_path: str = ""
     fuzzy_threshold: float = 0.8
@@ -237,3 +264,4 @@ class AppConfig:
     dataset_import: DatasetImportConfig = field(default_factory=DatasetImportConfig)
     cc_index: CCIndexConfig = field(default_factory=CCIndexConfig)
     wayback: WaybackConfig = field(default_factory=WaybackConfig)
+    books: BooksConfig = field(default_factory=BooksConfig)

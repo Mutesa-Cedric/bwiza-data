@@ -80,6 +80,10 @@ def test_dataset_for_source_cc_index():
     assert dataset_for_source("cc_index") == "pretrain"
 
 
+def test_dataset_for_source_books_corpus():
+    assert dataset_for_source("books_corpus") == "pretrain"
+
+
 def test_dataset_for_source_unknown():
     import pytest
 

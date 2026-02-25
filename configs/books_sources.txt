@@ -1,0 +1,149 @@
+# Kinyarwanda books seed list (tab-separated preferred)
+# format:
+#   url<TAB>title<TAB>source<TAB>license_status<TAB>license_type<TAB>license_notes
+# minimum supported format:
+#   url
+#
+# license_status examples: open | unknown | restricted
+# Keep this file as the audit log for downstream licensing cleanup.
+
+# ===================================================================
+# TIER A: REB Education Textbooks (highest priority, long-form Kinyarwanda)
+# ===================================================================
+
+# -- Direct pluginfile.php PDF links --
+https://elearning.reb.rw/pluginfile.php/1/block_exalib/item_file/91/Ikinyarwanda%20core%20S4%20SB.pdf	Ikinyarwanda Core S4 Student Book	reb.rw	unknown	unknown	Verify downstream reuse rights
+https://elearning.reb.rw/pluginfile.php/86301/mod_resource/content/1/IKINYARWANDA%20SB%20S4%20(1).pdf	Ikinyarwanda SB S4	reb.rw	unknown	gov_education	REB e-learning textbook
+https://elearning.reb.rw/pluginfile.php/86223/mod_resource/content/1/IKINYARWANDA%20S4%20SB.pdf	Ikinyarwanda S4 SB	reb.rw	unknown	gov_education	REB e-learning textbook
+https://elearning.reb.rw/pluginfile.php/11570/mod_resource/content/1/Kinyarwanda%20S3%20SB.pdf	Kinyarwanda S3 Student Book	reb.rw	unknown	gov_education	REB e-learning textbook
+https://elearning.reb.rw/pluginfile.php/1872584/mod_resource/content/1/Kinyarwanda%20S5%20%20%20SB.pdf	Kinyarwanda S5 Student Book	reb.rw	unknown	gov_education	REB e-learning textbook
+https://elearning.reb.rw/pluginfile.php/28340/mod_resource/content/1/Kinyarwanda%20S5%20%20%20SB.pdf	Kinyarwanda S5 Student Book (alt)	reb.rw	unknown	gov_education	REB e-learning textbook
+https://elearning.reb.rw/pluginfile.php/11955/mod_resource/content/2/Kinyarwanda%20S6%20Other%20streams%20SB.pdf	Kinyarwanda S6 Other Streams SB	reb.rw	unknown	gov_education	REB e-learning textbook
+https://elearning.reb.rw/pluginfile.php/1860852/mod_resource/content/1/Kinyarwanda%20SME%20%20SSE%20SB%20%20Year%202.pdf	Kinyarwanda SME SSE SB Year 2 (TTC)	reb.rw	unknown	gov_education	Teacher Training College
+https://elearning.reb.rw/pluginfile.php/35936/mod_resource/content/1/Ikinyarwanda%20S4%20TG.pdf	Ikinyarwanda S4 Teacher Guide	reb.rw	unknown	gov_education	REB teacher guide
+https://elearning.reb.rw/pluginfile.php/11803/mod_resource/content/1/Kinyarwanda%20S5%20Adapted%20TG%202022.pdf	Kinyarwanda S5 Adapted TG 2022	reb.rw	unknown	gov_education	REB teacher guide
+https://elearning.reb.rw/pluginfile.php/11572/mod_resource/content/1/Kinyarwanda%20S3%20Adapted%20TG%202022.pdf	Kinyarwanda S3 Adapted TG 2022	reb.rw	unknown	gov_education	REB teacher guide
+https://elearning.reb.rw/pluginfile.php/1/block_exalib/item_file/88/kinyarwanda%20P6%20SB.pdf	Kinyarwanda P6 Student Book	reb.rw	unknown	gov_education	REB primary textbook
+https://elearning.reb.rw/pluginfile.php/1/block_exalib/item_file/116/KINYARWANDA%20P4%20SB.pdf	Kinyarwanda P4 Student Book	reb.rw	unknown	gov_education	REB primary textbook
+https://elearning.reb.rw/pluginfile.php/50077/mod_resource/content/1/KINYARWANDA%20BOOK%20P4%20(1).pdf	Kinyarwanda Book P4	reb.rw	unknown	gov_education	REB primary textbook
+https://elearning.reb.rw/pluginfile.php/20414/mod_resource/content/1/Kinyarwanda%20Y1%20SSE%20TG.pdf	Kinyarwanda Y1 SSE Teacher Guide (TTC)	reb.rw	unknown	gov_education	Teacher Training College
+https://elearning.reb.rw/pluginfile.php/23529/mod_resource/content/1/Kinyarwanda%20Y2%20SME%20%20SSE%20TG.pdf	Kinyarwanda Y2 SME SSE Teacher Guide (TTC)	reb.rw	unknown	gov_education	Teacher Training College
+https://elearning.reb.rw/pluginfile.php/23577/mod_resource/content/1/Kinyarwanda%20Y3%20LE%20SB.pdf	Kinyarwanda Y3 LE Student Book (TTC)	reb.rw	unknown	gov_education	Teacher Training College
+https://elearning.reb.rw/pluginfile.php/88655/mod_resource/content/1/ANP-Kinyarwanda-S4-SB.pdf	ANP Kinyarwanda S4 SB (Associate Nursing)	reb.rw	unknown	gov_education	Nursing program textbook
+https://elearning.reb.rw/pluginfile.php/23573/mod_resource/content/1/Kinyarwanda%20Y3%20ECLPE%20SB.pdf	Ikinyarwanda TTC Igitabo cy'Umunyeshuri 3	reb.rw	unknown	gov_education	Teacher Training College
+https://elearning.reb.rw/pluginfile.php/1/block_exalib/item_file/95/Kinyarwanda%20S6%20Other%20streams%20SB.pdf	Kinyarwanda S6 Other Streams SB (library)	reb.rw	unknown	gov_education	Exabis library copy
+
+# -- Moodle resource view URLs (redirect to PDF) --
+https://elearning.reb.rw/mod/resource/view.php?id=2623&forceview=1	P1 Kinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=3653	P2 Ikinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=3814&forceview=1	P3 Ikinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=10534&forceview=1	P4 Kinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=4469&forceview=1	P5 Kinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=4811&forceview=1	P6 Ikinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=10535&forceview=1	P4 Kinyarwanda Teacher Guide	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=4474	P5 Kinyarwanda Teacher Guide	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=1428&forceview=1	S1 Kinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=1158	S2 Kinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=3422	S3 Kinyarwanda Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=12890&forceview=1	S4 Ikinyarwanda Core Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=12845&forceview=1	S5 Kinyarwanda EL Student Book	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=12887&forceview=1	S6 Ikinyarwanda Core Teacher Guide	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=1429&forceview=1	S1 Kinyarwanda Teacher Guide Adapted	reb.rw	unknown	gov_education	Moodle redirect to PDF
+https://elearning.reb.rw/mod/resource/view.php?id=2773	Kinyarwanda Training Manual for Trainees	reb.rw	unknown	gov_education	Moodle redirect to PDF
+
+# -- Third-party hosting of REB textbooks --
+https://www.tanprints.com/pdf/_12_rwanda-educationa-books/Kiniyarwanda%20S6%20(Text%20Book).pdf	Ikinyarwanda S6 Textbook	tanprints.com	unknown	unknown	Third-party host of REB textbook
+https://www.tanprints.com/pdf/_12_rwanda-educationa-books/Kiniyarwanda-S2%20(Text%20Book).pdf	Ikinyarwanda S2 Student Book	tanprints.com	unknown	unknown	Third-party host of REB textbook
+https://www.tanprints.com/pdf/_12_rwanda-educationa-books/Kiniyarwanda-S2%20(Teacher%20Book).pdf	Ikinyarwanda S2 Teacher Book	tanprints.com	unknown	unknown	Third-party host of REB textbook
+https://rwiyemeza.com/books/Ikinyarwanda%20umwaka%20wa%20gatanu%20(5)%20w'amashuri%20yisumbuye,%20igitabo%20cy'umunyeshuri..pdf	Ikinyarwanda Umwaka wa 5 (S5 textbook)	rwiyemeza.com	unknown	unknown	Third-party host
+
+# ===================================================================
+# TIER B: Government and Policy Documents
+# ===================================================================
+
+# -- Rwanda Vision & Constitution --
+https://www.minecofin.gov.rw/fileadmin/user_upload/Minecofin/Publications/STRATEGIES/Vision_2050/Kinyarwanda-Vision_2050_Full_version-Web.pdf	Vision 2050 Kinyarwanda Full Version	minecofin.gov.rw	open	gov_publication	Government strategy document
+https://www.minecofin.gov.rw/index.php?eID=dumpFile&t=f&f=85852&token=bbf2750a8f262658fba1c14f006285a36818abdc	Itegeko Nshinga rya Repubulika y'u Rwanda	minecofin.gov.rw	open	gov_publication	Constitution in Kinyarwanda
+https://www.rwandabar.org.rw/attached_pdf/Constitution%20of%20the%20Republic%20of%20Rwanda-1608275353.pdf	Constitution of the Republic of Rwanda	rwandabar.org.rw	open	gov_publication	Trilingual constitution
+
+# -- MINIJUST Official Gazettes (formal legal Kinyarwanda) --
+https://www.minijust.gov.rw/fileadmin/user_upload/Minijust/Publications/Laws/Abunzi_Law_of_20-09-2016.pdf	Itegeko No37/2016 Abunzi Law	minijust.gov.rw	open	gov_law	Trilingual legal text
+https://www.minijust.gov.rw/index.php?eID=dumpFile&t=f&f=96771&token=e8402d8c7aa9ed9bf75cb7c0cd8bfb643a8aa70e	Official Gazette Special Bis 19/04/2024	minijust.gov.rw	open	gov_law	Trilingual gazette
+https://www.minijust.gov.rw/index.php?eID=dumpFile&t=f&f=111776&token=56e4f375f954407e4eaab1e8291441f2a71161ee	Official Gazette 30/07/2024 Law on Persons and Family	minijust.gov.rw	open	gov_law	Trilingual gazette
+https://www.minijust.gov.rw/index.php?eID=dumpFile&t=f&f=86265&token=7a1c0cebbe55fc76696b87da5ac0c3894c3347c8	Official Gazette Special 05/12/2023	minijust.gov.rw	open	gov_law	Trilingual gazette
+https://www.minijust.gov.rw/index.php?eID=dumpFile&t=f&f=94150&token=d22457b3b28774d7ddcabc3700e51929d5fca0ed	Official Gazette Special Bis 08/03/2024	minijust.gov.rw	open	gov_law	Trilingual gazette
+https://www.minijust.gov.rw/index.php?eID=dumpFile&t=f&f=74585&token=a47c5459b0fc8a16732080484451fbc6d7a6e134	Official Gazette Special 14/09/2023	minijust.gov.rw	open	gov_law	Trilingual gazette
+
+# -- Other government documents --
+https://www.nyc.gov.rw/fileadmin/templates/template_new/documents/Imivugire_yemewe_y_Ikinyarwanda.pdf	Imivugire yemewe y'Ikinyarwanda (Official Usage Guide)	nyc.gov.rw	open	gov_publication	RALC language standards
+https://www.rwandaheritage.gov.rw/index.php?eID=dumpFile&t=f&f=56100&token=2a4a696f1d8616f868f1a1c7ca930a5ee1242509	Ubukwe bwa Kinyarwanda (Traditional Wedding)	rwandaheritage.gov.rw	open	gov_publication	Cultural heritage document
+https://www.rwandaheritage.gov.rw/index.php?eID=dumpFile&t=f&f=35757&token=314157421b0ebba1bc68e5bfc8983f7e30c5153e	Kinyarwanda Language and Culture	rwandaheritage.gov.rw	open	gov_publication	Cultural heritage document
+https://www.rra.gov.rw/fileadmin/user_upload/rra_tax_handbook_november_2019.pdf	RRA Tax Handbook 2nd Edition	rra.gov.rw	open	gov_publication	Verify Kinyarwanda content
+https://rdb.rw/wp-content/uploads/2021/04/New-Investment-code-2021.pdf	Itegeko N006/2021 Investment Code	rdb.rw	open	gov_law	Bilingual legal text
+https://rgb.rw/index.php?eID=dumpFile&f=102343&t=f&token=f3216133e9f2990811c89e30aa85bdb648c94073	Official Gazette Special 19/07/2024	rgb.rw	open	gov_law	Trilingual gazette
+https://kifc.rw/wp-content/uploads/2023/04/Amended-Notary-Law.pdf	Itegeko No 017/2023 Amended Notary Law	kifc.rw	open	gov_law	Legal text
+https://businessprocedures.rdb.rw/media/new%20company%20law.pdf	Company Law Official Gazette 2010	rdb.rw	open	gov_law	Trilingual legal text
+
+# -- REB main site curriculum docs --
+http://www.reb.rw/fileadmin/user_upload/documents/curriculum/primary/integanyanyigisho_y_ikinyarwanda_p1_p2_p3.pdf	Integanyanyigisho y'Ikinyarwanda P1-P3	reb.rw	unknown	gov_education	Curriculum guide
+
+# ===================================================================
+# TIER C: NGO, Religious, and International Sources
+# ===================================================================
+
+# -- JW.org Kinyarwanda books (HTML pages with full text) --
+https://www.jw.org/rw/isomero/ibitabo/korera-imana-ufite-ubutwari/	Korera Imana ufite ubutwari	jw.org	restricted	free_distribution	Free but restricted redistribution
+https://www.jw.org/rw/isomero/ibitabo/amahame-ya-bibiliya-adufasha-mu-mibereho-yacu/	Amahame ya Bibiliya adufasha	jw.org	restricted	free_distribution	Free but restricted redistribution
+https://www.jw.org/rw/isomero/ibitabo/ishimire-ubuzima-iteka-ryose/	Ishimire Ubuzima Iteka Ryose	jw.org	restricted	free_distribution	Free but restricted redistribution
+https://www.jw.org/rw/isomero/ibitabo/Turi-umuryango-ukora-ibyo-Yehova-ashaka/	Turi umuryango ukora ibyo Yehova ashaka	jw.org	restricted	free_distribution	Free but restricted redistribution
+
+# -- Bible full texts (large documents) --
+https://bibliamundi.com/wp-content/uploads/2023/09/Kinyarwanda-Bibiliya-Ntagatifu-All-Bible.pdf	Kinyarwanda Bibiliya Ntagatifu (full Bible)	bibliamundi.com	open	free_distribution	Full Bible in Kinyarwanda
+https://bibliamundi.com/wp-content/uploads/2023/09/Kinyarwanda-Bibiliya-Yera-2001-All-Bible.pdf	Kinyarwanda Bibiliya Yera 2001 (full Bible)	bibliamundi.com	open	free_distribution	Full Bible in Kinyarwanda
+
+# -- Religious educational materials --
+https://www.practiceministries.org/wp-content/uploads/2019/07/Ten-Commandments-2-Leaderbook-Kinyarwanda_070119-1.pdf	Ten Commandments Leader Book (Kinyarwanda)	practiceministries.org	open	free_distribution	Religious educational
+https://www.practiceministries.org/wp-content/uploads/2019/04/Heroes-of-the-Bible-ETB-Kinyarwanda-Word-workbook-032819-1.pdf	Heroes of the Bible Workbook (Kinyarwanda)	practiceministries.org	open	free_distribution	Religious educational
+
+# -- UNICEF Rwanda --
+https://www.unicef.org/rwanda/media/376/file/2019-Guidance-Latrine-Construction-Kinyarwanda.pdf	Guidance for Latrine Construction (Kinyarwanda)	unicef.org	open	un_publication	Verify Kinyarwanda content ratio
+
+# -- Peace Corps --
+https://files.peacecorps.gov/multimedia/audio/languagelessons/rwanda/RW_Kinyarwanda_Language_Lessons.pdf	Peace Corps Kinyarwanda Language Lessons	peacecorps.gov	open	us_gov	US government work
+
+# -- Storybooks Rwanda (CC-BY licensed, short but clean Kinyarwanda) --
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0087/	Nkunda gusoma!	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0327/	Kubara Inyamaswa	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0030/	Ukwiyunviro	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0302/	Umuriro	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0156/	Ingona Yari Ishonje	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0002/	Inyamaswa Zo Mu Rugo	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0003/	Imyenda y'ishuli	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0271/	Kabiri	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0008/	Uri gukora iki?	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0009/	Ipusi yange iri hehe?	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0006/	Anansi n'Ubwenge	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0110/	Imbuto Ntoya: Inkuru ya Wangari Maathai	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0052/	Simbegwire	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0262/	Magozwe	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0066/	Nozibele n'imisatsi itatu	storybooks-rwanda	open	CC-BY	African Storybook
+https://global-asp.github.io/storybooks-rwanda/stories/rw/0001/	Umugabo Muremure Cyane	storybooks-rwanda	open	CC-BY	African Storybook
+
+# -- Language learning / reference --
+https://www.webonary.org/kinyarwanda/files/keng.pdf	Iriza Kinyarwanda-English Dictionary	webonary.org	open	SIL	SIL dictionary
+https://kigalinews.wordpress.com/wp-content/uploads/2013/05/learn-kinyarwanda.pdf	Kinyarwanda Lessons (Cox & Gakuba)	kigalinews	open	unknown	Language learning material
+
+# ===================================================================
+# TIER D: Archives and Miscellaneous
+# ===================================================================
+
+# -- Internet Archive (verify access and content quality) --
+https://archive.org/details/IrizaKinyarwandaEngishAndEnglishKinyarwandaDictionary	Iriza Kinyarwanda-English Dictionary	archive.org	unknown	unknown	Verify downloadable text
+https://archive.org/details/dusome-ikinyarwanda	Dusome Ikinyarwanda (Let's Read)	archive.org	unknown	unknown	Verify downloadable text
+
+# -- Academic --
+https://www.matana.de/kirundi_kinyarwanda.pdf	Kinyarwanda and Kirundi Comparative Grammar	matana.de	unknown	academic	Zorc & Nibagwire
+https://docs.steinhardt.nyu.edu/pdfs/metrocenter/atn293/mssocialstudies/ms_social_studies_kinyarwanda.pdf	Social Studies Glossary English/Kinyarwanda	nyu.edu	open	academic	NYU Steinhardt
+
+# -- Third-party education sites --
+https://pathtosuccess.co.rw/wp/wp-content/uploads/2020/05/P1-Textbook-1.pdf	P1 Textbook	pathtosuccess.co.rw	unknown	unknown	Verify Kinyarwanda content

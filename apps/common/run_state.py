@@ -13,6 +13,7 @@ PIPELINES = {
     "cc_index",
     "wayback",
     "cc_lang",
+    "books_corpus",
 }
 
 # Valid run statuses

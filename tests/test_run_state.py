@@ -116,6 +116,7 @@ def test_from_dict_ignores_extra_fields():
 def test_pipelines_stable():
     assert "cc_miner" in PIPELINES
     assert "targeted_crawler" in PIPELINES
+    assert "books_corpus" in PIPELINES
     assert "parallel" in PIPELINES
     assert "instructions" in PIPELINES
 

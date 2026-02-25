@@ -6,6 +6,7 @@ import yaml
 
 from apps.common.config_types import (
     AppConfig,
+    BooksConfig,
     CCConfig,
     CCIndexConfig,
     DedupConfig,
@@ -39,6 +40,7 @@ _SECTION_MAP = {
     "wiki": WikiConfig,
     "cc_index": CCIndexConfig,
     "wayback": WaybackConfig,
+    "books": BooksConfig,
 }
 
 
@@ -159,4 +161,26 @@ def _validate(cfg: AppConfig) -> None:
     if cfg.instructions.target_count <= 0:
         raise ValueError(
             f"instructions.target_count must be > 0, got {cfg.instructions.target_count}"
+        )
+
+    if cfg.books.concurrency <= 0:
+        raise ValueError(f"books.concurrency must be > 0, got {cfg.books.concurrency}")
+
+    if cfg.books.request_timeout_s <= 0:
+        raise ValueError(f"books.request_timeout_s must be > 0, got {cfg.books.request_timeout_s}")
+
+    if cfg.books.max_retries <= 0:
+        raise ValueError(f"books.max_retries must be > 0, got {cfg.books.max_retries}")
+
+    if cfg.books.domain_delay_s < 0:
+        raise ValueError(f"books.domain_delay_s must be >= 0, got {cfg.books.domain_delay_s}")
+
+    if cfg.books.max_response_bytes <= 0:
+        raise ValueError(
+            f"books.max_response_bytes must be > 0, got {cfg.books.max_response_bytes}"
+        )
+
+    if not 0 <= cfg.books.min_lid_confidence <= 1:
+        raise ValueError(
+            f"books.min_lid_confidence must be in [0, 1], got {cfg.books.min_lid_confidence}"
         )

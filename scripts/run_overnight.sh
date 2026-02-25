@@ -45,10 +45,15 @@ log "  Starting CC miner..."
 $VENV scripts/run_cc_miner.py > "$LOG_DIR/cc_miner.log" 2>&1 &
 PID_CC=$!
 
+# 1e. Books corpus (high-quality direct PDF/HTML sources)
+log "  Starting books corpus pipeline..."
+$VENV scripts/run_books_corpus.py > "$LOG_DIR/books.log" 2>&1 &
+PID_BK=$!
+
 # Wait for all crawlers
 log "  Waiting for crawlers to finish..."
 FAIL=0
-for PID_NAME in "$PID_CCI:cc_index" "$PID_TC:targeted" "$PID_WB:wayback" "$PID_CC:cc_miner"; do
+for PID_NAME in "$PID_CCI:cc_index" "$PID_TC:targeted" "$PID_WB:wayback" "$PID_CC:cc_miner" "$PID_BK:books"; do
     PID="${PID_NAME%%:*}"
     NAME="${PID_NAME##*:}"
     if wait "$PID"; then

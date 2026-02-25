@@ -18,6 +18,7 @@ SOURCE_TO_DATASET: dict[str, str] = {
     "wayback": "pretrain",
     "cc_index": "pretrain",
     "cc_lang": "pretrain",
+    "books_corpus": "pretrain",
     "parallel_web": "parallel",
     "instructions_rw": "instructions",
 }

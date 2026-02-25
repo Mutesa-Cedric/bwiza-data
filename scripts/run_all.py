@@ -21,6 +21,9 @@ Strategy (ordered by expected yield):
 
   Tier 3: Targeted Crawler — live web crawl of 105 .rw domains.
 
+  Tier 4: Books Corpus — direct ingestion of high-quality book/PDF URLs
+          with license-audit metadata retained in document meta.
+
 After crawling, runs: index → dedup → enrich → split → export.
 """
 
@@ -180,6 +183,7 @@ def main() -> int:
         cc_lang_resume = _find_resumable_run("cc_lang")
         cc_index_resume = _find_resumable_run("cc_index")
         targeted_resume = _find_resumable_run("targeted_crawler")
+        books_resume = _find_resumable_run("books_corpus")
 
         if cc_lang_resume:
             logger.info("  Resuming CC lang run: %s", cc_lang_resume)
@@ -187,6 +191,8 @@ def main() -> int:
             logger.info("  Resuming CC index run: %s", cc_index_resume)
         if targeted_resume:
             logger.info("  Resuming targeted run: %s", targeted_resume)
+        if books_resume:
+            logger.info("  Resuming books run: %s", books_resume)
 
         # Build commands with --resume flags where applicable
         cc_lang_cmd = [
@@ -208,6 +214,10 @@ def main() -> int:
         if targeted_resume:
             targeted_cmd.extend(["--resume", targeted_resume])
 
+        books_cmd = [py, "scripts/run_books_corpus.py"]
+        if books_resume:
+            books_cmd.extend(["--resume", books_resume])
+
         crawl_tasks = [
             (
                 cc_lang_cmd,
@@ -225,6 +235,12 @@ def main() -> int:
                 targeted_cmd,
                 log_dir / "targeted.log",
                 "Targeted Crawler (Tier 3)",
+                args.crawl_timeout,
+            ),
+            (
+                books_cmd,
+                log_dir / "books.log",
+                "Books Corpus (Tier 4)",
                 args.crawl_timeout,
             ),
         ]

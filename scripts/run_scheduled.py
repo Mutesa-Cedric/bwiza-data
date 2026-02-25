@@ -4,6 +4,7 @@
 Usage:
     python scripts/run_scheduled.py --pipeline cc_miner
     python scripts/run_scheduled.py --pipeline targeted_crawler --resume <run_id>
+    python scripts/run_scheduled.py --pipeline books_corpus --resume <run_id>
     python scripts/run_scheduled.py --pipeline parallel --resume <run_id>
     python scripts/run_scheduled.py --pipeline instructions --resume <run_id>
 
@@ -20,7 +21,7 @@ from apps.common.run_lock import RunLockError, acquire_lock, release_lock
 
 log = get_logger(__name__)
 
-PIPELINES = {"cc_miner", "targeted_crawler", "parallel", "instructions"}
+PIPELINES = {"cc_miner", "targeted_crawler", "books_corpus", "parallel", "instructions"}
 
 
 def _run_pipeline(pipeline: str, cfg, resume_run_id: str = "") -> int:
@@ -33,6 +34,10 @@ def _run_pipeline(pipeline: str, cfg, resume_run_id: str = "") -> int:
         from apps.targeted_crawler.run import run_targeted_crawler
 
         stats = run_targeted_crawler(cfg, resume_run_id=resume_run_id)
+    elif pipeline == "books_corpus":
+        from apps.books_corpus.run import run_books_corpus
+
+        stats = run_books_corpus(cfg, resume_run_id=resume_run_id)
     elif pipeline == "parallel":
         from apps.parallel_corpus.run import run_parallel_corpus
 

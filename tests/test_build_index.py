@@ -116,6 +116,20 @@ def test_build_index_multiple_sources_same_dataset(tmp_path):
     assert sources == {"commoncrawl", "targeted_web"}
 
 
+def test_build_index_books_source_prefix(tmp_path):
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    _write_manifest(
+        manifest_dir / "run1.jsonl",
+        [_manifest_entry(source="books_corpus", filename="books_001.jsonl.zst")],
+    )
+
+    entries = build_index("pretrain", "test-bucket", manifest_dir=str(manifest_dir))
+    assert len(entries) == 1
+    assert entries[0].source == "books_corpus"
+    assert entries[0].s3_key.startswith("bwiza/curated/v1/books/")
+
+
 def test_build_and_write_index(tmp_path):
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir()

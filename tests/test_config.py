@@ -146,6 +146,32 @@ def test_parallel_defaults_loaded():
     assert cfg.parallel.output_source == "parallel_web"
 
 
+def test_books_defaults_loaded():
+    cfg = load_config("configs/default.yaml")
+    assert cfg.books.enabled is False
+    assert cfg.books.seeds_file == "configs/books_sources.txt"
+    assert cfg.books.concurrency == 8
+    assert cfg.books.domain_delay_s == 0.25
+    assert cfg.books.output_source == "books_corpus"
+    assert cfg.books.allowed_content_types == ["text/html", "application/pdf"]
+
+
+def test_books_invalid_concurrency():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"books": {"concurrency": 0}}, p)
+        with pytest.raises(ValueError, match="books.concurrency"):
+            load_config(p)
+
+
+def test_books_invalid_lid_confidence():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "bad.yaml"
+        _write_yaml({"books": {"min_lid_confidence": 1.1}}, p)
+        with pytest.raises(ValueError, match="books.min_lid_confidence"):
+            load_config(p)
+
+
 def test_parallel_invalid_min_chars():
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "bad.yaml"
