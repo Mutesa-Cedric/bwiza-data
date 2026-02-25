@@ -1,4 +1,8 @@
-"""Crawl frontier with allowlist enforcement, per-domain caps, and dedup."""
+"""Crawl frontier with allowlist enforcement, per-domain caps, and dedup.
+
+Uses round-robin domain interleaving so workers fetch from different
+domains, avoiding rate-limiter contention.
+"""
 
 from collections import deque
 from urllib.parse import urlparse
@@ -14,6 +18,8 @@ class CrawlFrontier:
     - Per-domain page caps are enforced.
     - Global max pages is enforced.
     - URLs are not revisited (seen set).
+    - next_url() rotates across domains (round-robin) so concurrent
+      workers hit different domains and avoid rate-limiter contention.
     """
 
     def __init__(
@@ -27,7 +33,8 @@ class CrawlFrontier:
         self._max_pages = max_pages
         self._per_domain_max = per_domain_max_pages
         self._path_prefixes = path_prefixes or {}
-        self._queue: deque[str] = deque()
+        self._domain_queues: dict[str, deque[str]] = {}
+        self._domain_order: deque[str] = deque()
         self._seen: set[str] = set()
         self._domain_counts: dict[str, int] = {}
         self._total_fetched: int = 0
@@ -43,18 +50,33 @@ class CrawlFrontier:
             self._enqueue(url)
 
     def next_url(self) -> str | None:
-        """Get next URL to crawl, or None if done."""
+        """Get next URL to crawl, or None if done.
+
+        Rotates across domains so consecutive calls return URLs from
+        different domains when available.
+        """
         if self._total_fetched >= self._max_pages:
             return None
 
-        while self._queue:
-            url = self._queue.popleft()
-            domain = self._domain_for_url(url)
+        checked = 0
+        while checked < len(self._domain_order):
+            domain = self._domain_order[0]
+            self._domain_order.rotate(-1)
+            checked += 1
 
-            if domain and self._domain_counts.get(domain, 0) >= self._per_domain_max:
+            # Skip domains that hit their per-domain cap
+            if self._domain_counts.get(domain, 0) >= self._per_domain_max:
+                self._domain_order.remove(domain)
+                checked -= 1
                 continue
 
-            return url
+            dq = self._domain_queues.get(domain)
+            if not dq:
+                self._domain_order.remove(domain)
+                checked -= 1
+                continue
+
+            return dq.popleft()
 
         return None
 
@@ -71,7 +93,7 @@ class CrawlFrontier:
 
     @property
     def queue_size(self) -> int:
-        return len(self._queue)
+        return sum(len(dq) for dq in self._domain_queues.values())
 
     @property
     def domain_counts(self) -> dict[str, int]:
@@ -90,7 +112,10 @@ class CrawlFrontier:
         if prefix and not parsed.path.startswith(prefix):
             return
         self._seen.add(url)
-        self._queue.append(url)
+        if domain not in self._domain_queues:
+            self._domain_queues[domain] = deque()
+            self._domain_order.append(domain)
+        self._domain_queues[domain].append(url)
 
     def _domain_for_url(self, url: str) -> str | None:
         parsed = urlparse(url)

@@ -127,3 +127,70 @@ class TestCrawlFrontier:
             ]
         )
         assert f.queue_size == 1
+
+    def test_round_robin_interleaving(self):
+        """Consecutive next_url() calls should rotate across domains."""
+        f = _make_frontier(allowed_domains={"a.rw", "b.rw", "c.rw"})
+        # Add many URLs per domain — FIFO would return a.rw, a.rw, a.rw...
+        f.add_links(
+            [
+                "https://a.rw/1",
+                "https://a.rw/2",
+                "https://a.rw/3",
+                "https://b.rw/1",
+                "https://b.rw/2",
+                "https://c.rw/1",
+            ]
+        )
+        # First 3 URLs should come from 3 different domains
+        urls = []
+        for _ in range(3):
+            url = f.next_url()
+            assert url is not None
+            urls.append(url)
+        domains = {u.split("/")[2] for u in urls}
+        assert len(domains) == 3
+
+    def test_round_robin_exhausted_domain(self):
+        """Domains that hit per_domain_max are removed from rotation."""
+        f = _make_frontier(
+            allowed_domains={"a.rw", "b.rw"},
+            per_domain_max_pages=1,
+        )
+        f.add_links(
+            [
+                "https://a.rw/1",
+                "https://a.rw/2",
+                "https://b.rw/1",
+                "https://b.rw/2",
+            ]
+        )
+        # Fetch from both, hitting the cap
+        url1 = f.next_url()
+        assert url1 is not None
+        f.mark_fetched(url1)
+        url2 = f.next_url()
+        assert url2 is not None
+        f.mark_fetched(url2)
+        # Both domains exhausted
+        assert f.next_url() is None
+
+    def test_round_robin_all_urls_consumed(self):
+        """All enqueued URLs are eventually returned."""
+        f = _make_frontier(allowed_domains={"a.rw", "b.rw"})
+        f.add_links(
+            [
+                "https://a.rw/1",
+                "https://a.rw/2",
+                "https://b.rw/1",
+            ]
+        )
+        urls = []
+        while True:
+            url = f.next_url()
+            if url is None:
+                break
+            f.mark_fetched(url)
+            urls.append(url)
+        assert len(urls) == 3
+        assert {"https://a.rw/1", "https://a.rw/2", "https://b.rw/1"} == set(urls)
