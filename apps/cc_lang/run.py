@@ -7,6 +7,8 @@ runs them through the quality pipeline.
 
 from __future__ import annotations
 
+import queue
+import threading
 from datetime import datetime, timezone
 
 from apps.cc_index.pipeline import process_warc_html
@@ -111,42 +113,47 @@ def run_cc_lang_miner(
         state.last_shard_name = meta.filename
         save_state(state)
 
+    # Use a bounded queue so scanning runs concurrently with WARC fetching.
+    # The scanner pushes records into the queue from a background thread;
+    # the main thread reads them, batches, and processes.
+    scan_q: queue.Queue[LangIndexRecord | None] = queue.Queue(
+        maxsize=icfg.warc_concurrency * 4,
+    )
+
+    def _scan_thread() -> None:
+        try:
+            for crawl_id in crawl_ids:
+                log.info("--- Scanning crawl %s ---", crawl_id)
+                for rec in scan_crawl_for_language(crawl_id, lang_code):
+                    if _done_key(rec) in done_set:
+                        state.items_skipped += 1
+                        continue
+                    scan_q.put(rec)
+        except Exception:
+            log.exception("Scanner thread failed")
+        finally:
+            scan_q.put(None)  # sentinel
+
+    scanner = threading.Thread(target=_scan_thread, daemon=True)
+
     try:
-        for crawl_id in crawl_ids:
-            if guardrail_hit:
+        scanner.start()
+        batch: list[LangIndexRecord] = []
+
+        while not guardrail_hit:
+            try:
+                rec = scan_q.get(timeout=120)
+            except queue.Empty:
+                if not scanner.is_alive():
+                    break
+                continue
+
+            if rec is None:
                 break
 
-            log.info("--- Scanning crawl %s ---", crawl_id)
-            batch: list[LangIndexRecord] = []
+            batch.append(rec)
 
-            for rec in scan_crawl_for_language(crawl_id, lang_code):
-                if _done_key(rec) in done_set:
-                    state.items_skipped += 1
-                    continue
-
-                batch.append(rec)
-
-                # Process in batches of warc_concurrency
-                if len(batch) >= icfg.warc_concurrency:
-                    guardrail_hit = _process_batch(
-                        batch,
-                        pool,
-                        icfg,
-                        cfg,
-                        dedup,
-                        guardrails,
-                        writer,
-                        stats,
-                        state,
-                        run_id,
-                        on_shard_closed,
-                    )
-                    batch = []
-                    if guardrail_hit:
-                        break
-
-            # Flush remaining batch
-            if batch and not guardrail_hit:
+            if len(batch) >= icfg.warc_concurrency:
                 guardrail_hit = _process_batch(
                     batch,
                     pool,
@@ -160,6 +167,23 @@ def run_cc_lang_miner(
                     run_id,
                     on_shard_closed,
                 )
+                batch = []
+
+        # Flush remaining batch
+        if batch and not guardrail_hit:
+            guardrail_hit = _process_batch(
+                batch,
+                pool,
+                icfg,
+                cfg,
+                dedup,
+                guardrails,
+                writer,
+                stats,
+                state,
+                run_id,
+                on_shard_closed,
+            )
 
         if state.status == "running":
             state.complete()
