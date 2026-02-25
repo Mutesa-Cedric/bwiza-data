@@ -116,7 +116,9 @@ def scan_index_file(
                    warc_record_offset, warc_record_length
             FROM read_parquet('{url}')
             WHERE content_languages IS NOT NULL
-              AND content_languages LIKE '%{lang_code}%'
+              AND (content_languages = '{lang_code}'
+                   OR content_languages LIKE '{lang_code},%')
+              AND url NOT LIKE '%.ru/%'
         """
         rows = con.execute(query).fetchall()
         con.close()
