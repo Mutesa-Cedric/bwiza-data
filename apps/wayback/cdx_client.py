@@ -39,42 +39,60 @@ def query_wayback_cdx(
 ) -> Iterator[WaybackRecord]:
     """Query Wayback CDX for all captures of a domain.
 
-    Uses server-side filters (statuscode, mimetype) and date range.
+    Splits the date range into per-year queries to keep response sizes
+    manageable and avoid SSL connection drops on large domains.
+    Uses server-side filters (statuscode, mimetype).
     Yields WaybackRecord for each matching entry.
     """
-    yield from _fetch_cdx_records(domain, cfg)
+    if cfg.from_year and cfg.to_year and cfg.to_year > cfg.from_year:
+        for year in range(cfg.from_year, cfg.to_year + 1):
+            log.info("  CDX chunk: domain=%s year=%d", domain, year)
+            yield from _fetch_cdx_records(domain, cfg, year_from=year, year_to=year)
+            time.sleep(cfg.cdx_rate_limit_s)
+    else:
+        yield from _fetch_cdx_records(domain, cfg)
 
 
 def _fetch_cdx_records(
     domain: str,
     cfg: WaybackConfig,
+    year_from: int | None = None,
+    year_to: int | None = None,
 ) -> Iterator[WaybackRecord]:
     """Fetch CDX results with server-side filters.
 
     The Wayback CDX API returns a JSON array of arrays.
     The first row is the header: ["timestamp","original","statuscode",...].
     Server-side filter params avoid the pagination+date-filter incompatibility.
+
+    When year_from/year_to are provided, they override cfg.from_year/to_year
+    (used by the per-year chunking in query_wayback_cdx).
     """
     params: list[tuple[str, str]] = [
         ("url", f"{domain}/*"),
         ("output", "json"),
         ("fl", "timestamp,original,statuscode,mimetype,length"),
     ]
-    if cfg.from_year:
-        params.append(("from", f"{cfg.from_year}0101"))
-    if cfg.to_year:
-        params.append(("to", f"{cfg.to_year}1231"))
+    from_y = year_from if year_from is not None else cfg.from_year
+    to_y = year_to if year_to is not None else cfg.to_year
+    if from_y:
+        params.append(("from", f"{from_y}0101"))
+    if to_y:
+        params.append(("to", f"{to_y}1231"))
     for status in cfg.status_filter:
         params.append(("filter", f"statuscode:{status}"))
     for mime in cfg.mime_filter:
         params.append(("filter", f"mimetype:{mime}"))
+
+    # Use a longer timeout for CDX queries (responses can be large)
+    cdx_timeout = max(cfg.cdx_timeout_s, 120)
 
     for attempt in range(cfg.cdx_max_retries):
         try:
             resp = requests.get(
                 CDX_BASE,
                 params=params,
-                timeout=cfg.cdx_timeout_s,
+                timeout=cdx_timeout,
                 headers={"User-Agent": cfg.user_agent},
             )
             if resp.status_code == 429:
@@ -85,10 +103,18 @@ def _fetch_cdx_records(
             resp.raise_for_status()
             break
         except requests.RequestException as exc:
+            wait = cfg.cdx_retry_backoff_s * (2**attempt)
             if attempt == cfg.cdx_max_retries - 1:
-                log.error("Wayback CDX fetch failed for %s: %s", domain, exc)
+                log.error("Wayback CDX fetch failed for %s (year=%s): %s", domain, from_y, exc)
                 return
-            time.sleep(cfg.cdx_retry_backoff_s * (2**attempt))
+            log.warning(
+                "Wayback CDX attempt %d failed for %s, retrying in %ds: %s",
+                attempt + 1,
+                domain,
+                wait,
+                exc,
+            )
+            time.sleep(wait)
     else:
         return
 

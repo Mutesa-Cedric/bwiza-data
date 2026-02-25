@@ -186,9 +186,9 @@ class WaybackConfig:
     )
     from_year: int = 2015
     to_year: int = 2025
-    cdx_timeout_s: int = 30
-    cdx_max_retries: int = 3
-    cdx_retry_backoff_s: int = 5
+    cdx_timeout_s: int = 120
+    cdx_max_retries: int = 5
+    cdx_retry_backoff_s: int = 10
     cdx_rate_limit_s: float = 1.0
     fetch_concurrency: int = 1
     fetch_timeout_s: int = 30

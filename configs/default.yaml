@@ -147,14 +147,14 @@ wayback:
     - "inyarwanda.com"
   from_year: 2015
   to_year: 2025
-  cdx_timeout_s: 30
-  cdx_max_retries: 3
-  cdx_retry_backoff_s: 5
+  cdx_timeout_s: 120
+  cdx_max_retries: 5
+  cdx_retry_backoff_s: 10
   cdx_rate_limit_s: 1.0
   fetch_concurrency: 1
   fetch_timeout_s: 30
-  fetch_rate_limit_s: 1.0
-  fetch_max_retries: 3
+  fetch_rate_limit_s: 2.0
+  fetch_max_retries: 5
   fetch_retry_backoff_s: 5
   max_records: 0
   output_source: "wayback"

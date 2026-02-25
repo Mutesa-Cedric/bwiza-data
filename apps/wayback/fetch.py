@@ -28,6 +28,7 @@ def fetch_wayback_page(record: WaybackRecord, cfg: WaybackConfig) -> WaybackFetc
 
     Retries on 429 (rate limit) and 5xx errors with exponential backoff.
     Returns immediately on 4xx client errors.
+    On 429, backs off aggressively (30s base) to avoid sustained throttling.
     """
     url = record.wayback_url
 
@@ -42,7 +43,8 @@ def fetch_wayback_page(record: WaybackRecord, cfg: WaybackConfig) -> WaybackFetc
                 return WaybackFetchResult(html_bytes=resp.content)
 
             if resp.status_code == 429:
-                wait = cfg.fetch_retry_backoff_s * (2**attempt)
+                # Aggressive backoff: 30s, 60s, 120s, ...
+                wait = 30 * (2**attempt)
                 log.warning("Wayback rate limited, waiting %ds", wait)
                 time.sleep(wait)
                 continue
