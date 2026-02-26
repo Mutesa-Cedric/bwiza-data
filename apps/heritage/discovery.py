@@ -44,6 +44,25 @@ class DiscoveryResult:
     static_count: int = 0
 
 
+# Paths that are English translations or site boilerplate — never harvest.
+_EXCLUDED_PATH_PREFIXES = ("/en/", "/fr/", "/index.php/")
+_EXCLUDED_PATHS = {
+    "/1/servisi-kuri-murandasi",
+    "/servisi-kuri-murandasi",
+    "/online-services",
+    "/en/online-services",
+}
+
+
+def _is_excluded(url: str) -> bool:
+    """Check if URL should be excluded (English paths, boilerplate)."""
+    parsed = urlparse(url)
+    path = parsed.path.lower()
+    if any(path.startswith(p) for p in _EXCLUDED_PATH_PREFIXES):
+        return True
+    return path.rstrip("/") in _EXCLUDED_PATHS
+
+
 def _classify_url(url: str) -> str:
     """Classify a heritage URL by type."""
     parsed = urlparse(url)
@@ -165,6 +184,8 @@ def run_discovery(
             if link in seen_urls:
                 continue
             if not _is_on_domain(link, hcfg.allowed_domain):
+                continue
+            if _is_excluded(link):
                 continue
 
             seen_urls.add(link)

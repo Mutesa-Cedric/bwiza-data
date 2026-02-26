@@ -6,6 +6,7 @@ from apps.common.config_types import AppConfig, HeritageConfig
 from apps.heritage.discovery import (
     _classify_url,
     _extract_section,
+    _is_excluded,
     _is_on_domain,
     run_discovery,
 )
@@ -238,3 +239,56 @@ def test_discovery_preserves_chash_in_pagination(mock_fetch):
     assert len(listing_urls) >= 1
     # cHash should be preserved in the URL
     assert any("cHash" in u for u in listing_urls)
+
+
+def test_is_excluded_english_paths():
+    assert _is_excluded("https://rwandaheritage.gov.rw/en/updates/news")
+    assert _is_excluded("https://rwandaheritage.gov.rw/en/online-services")
+    assert _is_excluded("https://rwandaheritage.gov.rw/fr/page")
+
+
+def test_is_excluded_boilerplate():
+    assert _is_excluded("https://rwandaheritage.gov.rw/1/servisi-kuri-murandasi")
+    assert _is_excluded("https://rwandaheritage.gov.rw/online-services")
+
+
+def test_is_excluded_allows_kinyarwanda_content():
+    assert not _is_excluded("https://rwandaheritage.gov.rw/amakuru")
+    assert not _is_excluded("https://rwandaheritage.gov.rw/news-details/inteko-yumuco")
+    assert not _is_excluded("https://rwandaheritage.gov.rw/fileadmin/doc.pdf")
+    assert not _is_excluded("https://rwandaheritage.gov.rw/1/inyandiko/ibitabo")
+
+
+@patch("apps.heritage.discovery.fetch_url")
+def test_discovery_excludes_english_paths(mock_fetch):
+    """English /en/ paths should be excluded from discovery."""
+    html = b"""
+    <html><body>
+    <a href="https://rwandaheritage.gov.rw/en/updates">English</a>
+    <a href="https://rwandaheritage.gov.rw/news-details/good">Good</a>
+    <a href="https://rwandaheritage.gov.rw/1/servisi-kuri-murandasi">Boilerplate</a>
+    </body></html>
+    """
+    mock_fetch.return_value = FetchResult(
+        url="https://rwandaheritage.gov.rw/amakuru",
+        status_code=200,
+        content_type="text/html",
+        content=html,
+        final_url="https://rwandaheritage.gov.rw/amakuru",
+    )
+
+    cfg = AppConfig(
+        heritage=HeritageConfig(
+            seed_listing_urls=["https://rwandaheritage.gov.rw/amakuru"],
+            allowed_domain="rwandaheritage.gov.rw",
+            max_listing_pages=5,
+            domain_delay_s=0,
+        ),
+    )
+
+    result = run_discovery(cfg)
+
+    urls = [item.url for item in result.discovered]
+    assert any("/news-details/good" in u for u in urls)
+    assert not any("/en/" in u for u in urls)
+    assert not any("servisi-kuri-murandasi" in u for u in urls)

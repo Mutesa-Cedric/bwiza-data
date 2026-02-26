@@ -112,6 +112,7 @@ def run_heritage(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     stats = RunStats()
+    discovery_meta: dict = {}
 
     # ── STAGE 1: DISCOVERY ─────────────────────────────────
     log.info("=== STAGE 1: DISCOVERY ===")
@@ -122,10 +123,20 @@ def run_heritage(
         log.info("Loading saved discovery index: %s", discovery_index_path)
         discovered_urls = load_discovery_index(discovery_index_path)
         log.info("Loaded %d previously discovered URLs", len(discovered_urls))
+        discovery_meta = {"loaded_from_cache": True, "total_urls": len(discovered_urls)}
     else:
         discovery_result = run_discovery(cfg, discovery_done=done_set)
         discovered_urls = discovery_result.discovered
         save_discovery_index(discovery_result, output_dir, run_id)
+
+        discovery_meta = {
+            "pages_crawled": discovery_result.pages_crawled,
+            "news": discovery_result.news_count,
+            "pdf": discovery_result.pdf_count,
+            "listing": discovery_result.listing_count,
+            "static": discovery_result.static_count,
+            "total_urls": len(discovered_urls),
+        }
 
         state.meta["discovery_pages_crawled"] = discovery_result.pages_crawled
         state.meta["discovery_news"] = discovery_result.news_count
@@ -138,7 +149,7 @@ def run_heritage(
         log.info("DRY RUN — skipping harvest stage")
         state.complete()
         save_state(state)
-        stats.write_json("outputs/heritage", run_id)
+        _write_heritage_stats(stats, discovery_meta, [], False, output_dir, run_id)
         return stats
 
     # ── STAGE 2: HARVEST ───────────────────────────────────
@@ -289,8 +300,10 @@ def run_heritage(
         state.current_item = ""
         save_state(state)
         _sync_state_to_s3()
-        stats.write_json("outputs/heritage", run_id)
         save_dead_letter(dead_letters, output_dir, run_id)
+
+    # Write enriched stats with heritage-specific sections
+    _write_heritage_stats(stats, discovery_meta, dead_letters, guardrail_hit, output_dir, run_id)
 
     log.info(
         "Heritage harvest complete: kept=%d seen=%d dupes=%d",
@@ -299,3 +312,49 @@ def run_heritage(
         stats.duplicates,
     )
     return stats
+
+
+def _write_heritage_stats(
+    stats: RunStats,
+    discovery_meta: dict,
+    dead_letters: list[DeadLetterEntry],
+    guardrail_hit: bool,
+    output_dir: Path,
+    run_id: str,
+) -> None:
+    """Write stats.json with discovery/harvest/quality_gates sections."""
+    import json
+
+    base = stats.to_dict()
+
+    base["discovery"] = discovery_meta
+
+    harvest_by_class: dict[str, int] = {}
+    for reason, count in stats.reject_reasons.items():
+        if reason.startswith("info."):
+            harvest_by_class[reason] = count
+    base["harvest"] = {
+        "total_processed": stats.docs_seen,
+        "kept": stats.docs_kept,
+        "duplicates": stats.duplicates,
+        "dead_letter_count": len(dead_letters),
+        "ocr_applied": stats.reject_reasons.get("info.ocr_applied", 0),
+        "lang_split_applied": stats.reject_reasons.get("info.lang_split_applied", 0),
+    }
+
+    base["quality_gates"] = {
+        "guardrail_triggered": guardrail_hit,
+        "lid_not_rw": stats.reject_reasons.get("reject.lid.not_rw", 0),
+        "lid_low_confidence": stats.reject_reasons.get("reject.lid.low_confidence", 0),
+        "pdf_extraction_failed": stats.reject_reasons.get("reject.pdf_extraction_failed", 0),
+        "extraction_failed": stats.reject_reasons.get("reject.extraction_failed", 0),
+        "filter_rejections": sum(
+            c for r, c in stats.reject_reasons.items() if r.startswith("reject.filter.")
+        ),
+    }
+
+    path = output_dir / "stats.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(base, f, indent=2)
+    log.info("Stats written to %s", path)
