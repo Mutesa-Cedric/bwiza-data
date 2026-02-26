@@ -215,7 +215,12 @@ heritage:
   domain_delay_s: 1.0
   user_agent: "bwiza-data/0.1 (heritage-corpus)"
   max_response_bytes: 50000000
-  allowed_content_types: ["text/html", "application/pdf"]
+  allowed_content_types:
+    - "text/html"
+    - "application/pdf"
+    - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    - "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    - "application/msword"
   output_source: "heritage_gov_rw"
   min_lid_confidence: 0.70
   extract_mode: "precision"

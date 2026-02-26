@@ -156,7 +156,9 @@ def run_heritage(
     log.info("=== STAGE 2: HARVEST ===")
 
     # Filter to harvestable content (news + pdf + static pages)
-    harvestable = [item for item in discovered_urls if item.url_class in ("news", "pdf", "static")]
+    harvestable = [
+        item for item in discovered_urls if item.url_class in ("news", "pdf", "document", "static")
+    ]
     pending = [item for item in harvestable if item.url not in done_set]
 
     state.items_total = len(harvestable)

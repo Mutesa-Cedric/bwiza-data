@@ -56,6 +56,12 @@ def test_classify_url_static():
     assert _classify_url("https://rwandaheritage.gov.rw/1/ikigo") == "static"
 
 
+def test_classify_url_document():
+    assert _classify_url("https://rwandaheritage.gov.rw/fileadmin/report.docx") == "document"
+    assert _classify_url("https://rwandaheritage.gov.rw/fileadmin/report.doc") == "document"
+    assert _classify_url("https://rwandaheritage.gov.rw/fileadmin/slides.pptx") == "document"
+
+
 def test_classify_url_fileadmin_image_not_pdf():
     assert _classify_url("https://rwandaheritage.gov.rw/fileadmin/photo.jpg") == "static"
 

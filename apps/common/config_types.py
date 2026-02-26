@@ -252,7 +252,13 @@ class HeritageConfig:
     user_agent: str = "bwiza-data/0.1 (heritage-corpus)"
     max_response_bytes: int = 50_000_000
     allowed_content_types: list[str] = field(
-        default_factory=lambda: ["text/html", "application/pdf"]
+        default_factory=lambda: [
+            "text/html",
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/msword",
+        ]
     )
     output_source: str = "heritage_gov_rw"
     min_lid_confidence: float = 0.70

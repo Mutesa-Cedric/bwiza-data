@@ -71,6 +71,8 @@ def _classify_url(url: str) -> str:
 
     if path.endswith(".pdf"):
         return "pdf"
+    if path.endswith((".docx", ".doc", ".pptx")):
+        return "document"
     if "/fileadmin/" in path and not path.endswith(
         (".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".css", ".js")
     ):

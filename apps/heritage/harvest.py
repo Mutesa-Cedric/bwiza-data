@@ -16,6 +16,7 @@ from apps.common.config_types import TargetedConfig
 from apps.common.lid import predict_lang
 from apps.common.logging import get_logger
 from apps.common.ocr import ocr_pdf
+from apps.common.office import extract_office_text, is_office_type, ocr_office
 from apps.heritage.discovery import DiscoveredURL
 from apps.heritage.pipeline import process_heritage_doc
 from apps.targeted_crawler.extract import ExtractedDoc, extract_main_text
@@ -100,19 +101,24 @@ def harvest_url(
     if not result.ok:
         return None, f"reject.fetch.{result.error}"
 
-    is_pdf = "application/pdf" in (result.content_type or "")
+    content_type = result.content_type or ""
+    url = result.final_url or item.url
+    is_pdf = "application/pdf" in content_type
+    is_office = is_office_type(content_type)
 
     if is_pdf:
         extracted = extract_pdf_text(
             result.content,
-            url=result.final_url or item.url,
+            url=url,
             max_pages=hcfg.pdf_max_pages,
             min_text_ratio=hcfg.pdf_min_text_ratio,
         )
+    elif is_office:
+        extracted = extract_office_text(result.content, content_type, url=url)
     else:
         extracted = extract_main_text(
             result.content,
-            url=result.final_url or item.url,
+            url=url,
             extraction_mode=hcfg.extract_mode,
         )
 
@@ -120,14 +126,25 @@ def harvest_url(
         # OCR fallback for scanned PDFs
         extracted = ocr_pdf(
             result.content,
-            url=result.final_url or item.url,
+            url=url,
             max_pages=hcfg.pdf_max_pages,
         )
         if extracted is not None:
             stats.reject_reasons["info.ocr_applied"] += 1
 
+    if extracted is None and is_office:
+        # OCR fallback for scanned office docs (image-only DOCX/PPTX)
+        extracted = ocr_office(result.content, content_type, url=url)
+        if extracted is not None:
+            stats.reject_reasons["info.ocr_applied"] += 1
+
     if extracted is None:
-        reason = "reject.pdf_extraction_failed" if is_pdf else "reject.extraction_failed"
+        if is_pdf:
+            reason = "reject.pdf_extraction_failed"
+        elif is_office:
+            reason = "reject.office_extraction_failed"
+        else:
+            reason = "reject.extraction_failed"
         return None, reason
 
     # Lang-split fallback for multilingual docs
