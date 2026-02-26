@@ -18,6 +18,7 @@ from apps.common.guardrails import GuardrailChecker
 from apps.common.lid import predict_lang
 from apps.common.logging import get_logger
 from apps.common.manifest import append_manifest_entry
+from apps.common.ocr import ocr_pdf
 from apps.common.run_state import RunState
 from apps.common.run_state_store import load_done_set, load_state, mark_done, save_state
 from apps.common.run_state_sync import upload_done_list, upload_state
@@ -187,6 +188,15 @@ def run_books_corpus(cfg: AppConfig, resume_run_id: str = "") -> RunStats:
                         url=result.final_url or seed.url,
                         extraction_mode=bcfg.extract_mode,
                     )
+
+                if extracted is None and is_pdf:
+                    extracted = ocr_pdf(
+                        result.content,
+                        url=result.final_url or seed.url,
+                        max_pages=bcfg.pdf_max_pages,
+                    )
+                    if extracted is not None:
+                        stats.reject_reasons["info.ocr_applied"] += 1
 
                 if extracted is None:
                     reason = (
