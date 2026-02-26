@@ -122,8 +122,20 @@ def harvest_url(
             extraction_mode=hcfg.extract_mode,
         )
 
+    # OCR fallback for PDFs: no text layer, or garbled font encoding (zxx)
+    if is_pdf and extracted is not None:
+        lid_lang, lid_conf, _ = predict_lang(extracted.text[:5000])
+        if lid_lang == "zxx_Latn" or (lid_conf < 0.3 and lid_lang not in ("kin_Latn", "rw")):
+            log.debug(
+                "PDF text is garbled (lid=%s/%.2f), falling back to OCR: %s",
+                lid_lang,
+                lid_conf,
+                url,
+            )
+            extracted = None  # force OCR fallback
+
     if extracted is None and is_pdf:
-        # OCR fallback for scanned PDFs
+        # OCR fallback for scanned PDFs or garbled text layer
         extracted = ocr_pdf(
             result.content,
             url=url,
