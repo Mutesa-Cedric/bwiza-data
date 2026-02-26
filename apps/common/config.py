@@ -12,6 +12,7 @@ from apps.common.config_types import (
     DedupConfig,
     FiltersConfig,
     GuardrailsConfig,
+    HeritageConfig,
     InstructionsConfig,
     LidConfig,
     LoggingConfig,
@@ -41,6 +42,7 @@ _SECTION_MAP = {
     "cc_index": CCIndexConfig,
     "wayback": WaybackConfig,
     "books": BooksConfig,
+    "heritage": HeritageConfig,
 }
 
 
@@ -183,4 +185,30 @@ def _validate(cfg: AppConfig) -> None:
     if not 0 <= cfg.books.min_lid_confidence <= 1:
         raise ValueError(
             f"books.min_lid_confidence must be in [0, 1], got {cfg.books.min_lid_confidence}"
+        )
+
+    if cfg.heritage.concurrency <= 0:
+        raise ValueError(f"heritage.concurrency must be > 0, got {cfg.heritage.concurrency}")
+
+    if cfg.heritage.request_timeout_s <= 0:
+        raise ValueError(
+            f"heritage.request_timeout_s must be > 0, got {cfg.heritage.request_timeout_s}"
+        )
+
+    if cfg.heritage.max_retries <= 0:
+        raise ValueError(f"heritage.max_retries must be > 0, got {cfg.heritage.max_retries}")
+
+    if cfg.heritage.domain_delay_s < 0:
+        raise ValueError(
+            f"heritage.domain_delay_s must be >= 0, got {cfg.heritage.domain_delay_s}"
+        )
+
+    if cfg.heritage.max_response_bytes <= 0:
+        raise ValueError(
+            f"heritage.max_response_bytes must be > 0, got {cfg.heritage.max_response_bytes}"
+        )
+
+    if not 0 <= cfg.heritage.min_lid_confidence <= 1:
+        raise ValueError(
+            f"heritage.min_lid_confidence must be in [0, 1], got {cfg.heritage.min_lid_confidence}"
         )

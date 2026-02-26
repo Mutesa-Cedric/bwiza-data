@@ -14,6 +14,7 @@ PIPELINES = {
     "wayback",
     "cc_lang",
     "books_corpus",
+    "heritage",
 }
 
 # Valid run statuses
