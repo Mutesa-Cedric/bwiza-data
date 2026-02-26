@@ -5,22 +5,15 @@ from unittest.mock import MagicMock, patch
 from apps.common.ocr import ocr_pdf
 
 
-def test_ocr_returns_none_when_pytesseract_missing():
-    """OCR should gracefully return None if pytesseract not installed."""
-    with patch.dict("sys.modules", {"pytesseract": None, "PIL": None, "PIL.Image": None}):
-        # Force reimport to trigger ImportError path
-        import importlib
-
-        import apps.common.ocr
-
-        importlib.reload(apps.common.ocr)
-        result = apps.common.ocr.ocr_pdf(b"fake-pdf")
+def test_ocr_returns_none_when_no_backend():
+    """OCR should gracefully return None if no backend is available."""
+    with patch("apps.common.ocr._OCR_BACKEND", "none"):
+        result = ocr_pdf(b"fake-pdf")
         assert result is None
-        # Reload back to normal
-        importlib.reload(apps.common.ocr)
 
 
 @patch("apps.common.ocr.pymupdf")
+@patch("apps.common.ocr._OCR_BACKEND", "apple_vision")
 def test_ocr_returns_none_for_encrypted_pdf(mock_pymupdf):
     doc = MagicMock()
     doc.is_encrypted = True
@@ -32,6 +25,7 @@ def test_ocr_returns_none_for_encrypted_pdf(mock_pymupdf):
 
 
 @patch("apps.common.ocr.pymupdf")
+@patch("apps.common.ocr._OCR_BACKEND", "apple_vision")
 def test_ocr_returns_none_for_empty_pdf(mock_pymupdf):
     doc = MagicMock()
     doc.is_encrypted = False
@@ -43,6 +37,7 @@ def test_ocr_returns_none_for_empty_pdf(mock_pymupdf):
 
 
 @patch("apps.common.ocr.pymupdf")
+@patch("apps.common.ocr._OCR_BACKEND", "apple_vision")
 def test_ocr_returns_none_for_oversized_pdf(mock_pymupdf):
     doc = MagicMock()
     doc.is_encrypted = False
@@ -55,6 +50,7 @@ def test_ocr_returns_none_for_oversized_pdf(mock_pymupdf):
 
 
 @patch("apps.common.ocr.pymupdf")
+@patch("apps.common.ocr._OCR_BACKEND", "apple_vision")
 def test_ocr_returns_none_for_invalid_pdf(mock_pymupdf):
     mock_pymupdf.open.side_effect = Exception("Invalid PDF")
 
