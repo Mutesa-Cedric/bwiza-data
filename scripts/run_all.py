@@ -184,6 +184,7 @@ def main() -> int:
         cc_index_resume = _find_resumable_run("cc_index")
         targeted_resume = _find_resumable_run("targeted_crawler")
         books_resume = _find_resumable_run("books_corpus")
+        heritage_resume = _find_resumable_run("heritage")
 
         if cc_lang_resume:
             logger.info("  Resuming CC lang run: %s", cc_lang_resume)
@@ -193,6 +194,8 @@ def main() -> int:
             logger.info("  Resuming targeted run: %s", targeted_resume)
         if books_resume:
             logger.info("  Resuming books run: %s", books_resume)
+        if heritage_resume:
+            logger.info("  Resuming heritage run: %s", heritage_resume)
 
         # Build commands with --resume flags where applicable
         cc_lang_cmd = [
@@ -218,6 +221,10 @@ def main() -> int:
         if books_resume:
             books_cmd.extend(["--resume", books_resume])
 
+        heritage_cmd = [py, "scripts/run_heritage.py"]
+        if heritage_resume:
+            heritage_cmd.extend(["--resume", heritage_resume])
+
         crawl_tasks = [
             (
                 cc_lang_cmd,
@@ -241,6 +248,12 @@ def main() -> int:
                 books_cmd,
                 log_dir / "books.log",
                 "Books Corpus (Tier 4)",
+                args.crawl_timeout,
+            ),
+            (
+                heritage_cmd,
+                log_dir / "heritage.log",
+                "Heritage Miner (Tier 5)",
                 args.crawl_timeout,
             ),
         ]
