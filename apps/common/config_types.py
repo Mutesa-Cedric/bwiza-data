@@ -250,7 +250,7 @@ class HeritageConfig:
     retry_backoff_s: int = 2
     domain_delay_s: float = 1.0
     user_agent: str = "bwiza-data/0.1 (heritage-corpus)"
-    max_response_bytes: int = 50_000_000
+    max_response_bytes: int = 150_000_000
     allowed_content_types: list[str] = field(
         default_factory=lambda: [
             "text/html",
