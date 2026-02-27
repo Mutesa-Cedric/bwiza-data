@@ -1,0 +1,62 @@
+# Institutional Wave 2 — Source Profiles
+#
+# Each source defines a domain, institution metadata, and seed URLs
+# for the two-stage discovery→harvest pipeline.
+
+sources:
+  - name: "National Unity and Reconciliation Commission"
+    domain: "minubumwe.gov.rw"
+    output_source: "minubumwe_gov_rw"
+    license_status: "government"
+    seeds:
+      - "https://minubumwe.gov.rw"
+      - "https://minubumwe.gov.rw/news"
+      - "https://minubumwe.gov.rw/1/publications"
+      - "https://minubumwe.gov.rw/1/archives/cnlg-archives"
+      - "https://minubumwe.gov.rw/1/kwibuka"
+    excluded_path_prefixes:
+      - "/en/"
+      - "/fr/"
+
+  - name: "Office of the Ombudsman"
+    domain: "ombudsman.gov.rw"
+    output_source: "ombudsman_gov_rw"
+    license_status: "government"
+    seeds:
+      - "https://ombudsman.gov.rw"
+      - "https://ombudsman.gov.rw/amakuru/amakuru"
+      - "https://ombudsman.gov.rw/amakuru/amatangazo-asanzwe"
+      - "https://ombudsman.gov.rw/inyandiko/raporo-zumwaka"
+      - "https://ombudsman.gov.rw/inyandiko/umuvunyi-magazine"
+      - "https://ombudsman.gov.rw/inyandiko/igenamigambi-ryurwego-rwumuvunyi"
+      - "https://ombudsman.gov.rw/ruswa/politiki-yo-kurwanya-ruswa"
+      - "https://ombudsman.gov.rw/tumenye/amategeko-atugenga"
+    excluded_path_prefixes:
+      - "/en/"
+      - "/fr/"
+
+  - name: "Rwanda Food and Drugs Authority"
+    domain: "rwandafda.gov.rw"
+    output_source: "rwandafda_gov_rw"
+    license_status: "government"
+    seeds:
+      - "https://rwandafda.gov.rw"
+      - "https://rwandafda.gov.rw/news/"
+      - "https://rwandafda.gov.rw/publications/"
+      - "https://rwandafda.gov.rw/laws/"
+    excluded_path_prefixes:
+      - "/en/"
+      - "/fr/"
+
+  - name: "Rwanda Water Resources Board"
+    domain: "rwb.rw"
+    output_source: "rwb_rw"
+    license_status: "government"
+    seeds:
+      - "https://rwb.rw"
+      - "https://rwb.rw/updates/news"
+      - "https://rwb.rw/updates/announcement-1"
+      - "https://rwb.rw/1-1/projects"
+    excluded_path_prefixes:
+      - "/en/"
+      - "/fr/"

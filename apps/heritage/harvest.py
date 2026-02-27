@@ -89,13 +89,20 @@ def harvest_url(
     dedup: DedupStore | ExactDedupStore,
     stats: RunStats,
     rate_limiter: DomainRateLimiter,
+    *,
+    output_source: str = "",
+    source_institution: str = "Rwanda Cultural Heritage Academy",
+    license_status: str = "government",
+    crawl_tag: str = "heritage-site",
+    rate_limit_domain: str = "",
 ) -> tuple[dict | None, str]:
     """Fetch, extract, and process a single discovered URL.
 
     Returns (doc_json, reject_reason). doc_json is None if rejected.
     """
     hcfg = cfg.heritage
-    rate_limiter.wait_if_needed(hcfg.allowed_domain)
+    domain = rate_limit_domain or hcfg.allowed_domain
+    rate_limiter.wait_if_needed(domain)
 
     result: FetchResult = fetch_url(item.url, fetch_cfg)
     if not result.ok:
@@ -170,6 +177,10 @@ def harvest_url(
         item.discovery_origin,
         cfg,
         dedup,
+        output_source=output_source,
+        source_institution=source_institution,
+        license_status=license_status,
+        crawl_tag=crawl_tag,
     )
 
     if doc is None:

@@ -15,6 +15,8 @@ PIPELINES = {
     "cc_lang",
     "books_corpus",
     "heritage",
+    "institutional",
+    "recrawl_pdfs",
 }
 
 # Valid run statuses

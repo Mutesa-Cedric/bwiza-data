@@ -24,8 +24,15 @@ def process_heritage_doc(
     discovery_origin: str,
     cfg: AppConfig,
     dedup: DedupStore | ExactDedupStore,
+    *,
+    output_source: str = "",
+    source_institution: str = "Rwanda Cultural Heritage Academy",
+    license_status: str = "government",
+    crawl_tag: str = "heritage-site",
 ) -> tuple[Document | None, KeepDecision]:
-    """Run keep + dedup pipeline for a fetched heritage document."""
+    """Run keep + dedup pipeline for a fetched heritage/institutional document."""
+    source = output_source or cfg.heritage.output_source
+
     decision = decide_keep(extracted.text, cfg)
     if not decision.keep:
         return None, decision
@@ -35,7 +42,7 @@ def process_heritage_doc(
         text_hash,
         decision.normalized_text,
         text_hash,
-        cfg.heritage.output_source,
+        source,
         "",
     )
     if is_dup:
@@ -51,17 +58,17 @@ def process_heritage_doc(
         "url_class": url_class,
         "section": section,
         "discovery_origin": discovery_origin,
-        "license_status": "government",
-        "source_institution": "Rwanda Cultural Heritage Academy",
+        "license_status": license_status,
+        "source_institution": source_institution,
         "retrieval_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }
 
     doc = Document(
         id=text_hash,
         text=decision.normalized_text,
-        source=cfg.heritage.output_source,
+        source=source,
         url=url,
-        crawl="heritage-site",
+        crawl=crawl_tag,
         fetched_at=datetime.now(timezone.utc).isoformat(),
         lang=decision.lang,
         lid_model="glotlid",
