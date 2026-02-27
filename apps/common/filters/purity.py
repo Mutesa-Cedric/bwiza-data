@@ -12,4 +12,4 @@ def required_confidence_for_length(n_chars: int) -> float:
         return 0.90
     if n_chars < 1000:
         return 0.85
-    return 0.80
+    return 0.70

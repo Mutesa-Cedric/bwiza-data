@@ -19,5 +19,5 @@ def test_longer_text():
 
 
 def test_long_text_baseline():
-    assert required_confidence_for_length(1000) == 0.80
-    assert required_confidence_for_length(10000) == 0.80
+    assert required_confidence_for_length(1000) == 0.70
+    assert required_confidence_for_length(10000) == 0.70
